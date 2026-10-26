@@ -275,6 +275,8 @@
             </div>
         </div>
     </div>
+    @endif
+
     {{-- MODAL: CIERRE MENSUAL Y LIQUIDACIÓN DE MERMA --}}
     @if($showClosureModal)
     <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-closure-title" role="dialog" aria-modal="true">
