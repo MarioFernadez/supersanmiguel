@@ -142,7 +142,7 @@
                     scanTimer: null,
                     submitCode(val) {
                         val = (val || '').trim();
-                        if (!val) return;
+                        if (!val || val.length < 2) return;
                         clearTimeout(this.scanTimer);
                         const input = document.getElementById('product-search-input');
                         if (input) input.value = '';
@@ -150,17 +150,17 @@
                     }
                 }">
                     <input id="product-search-input" 
-                        wire:model.live.debounce.150ms="search" 
+                        wire:model.live.debounce.300ms="search" 
                         type="text" 
                         x-on:keydown.enter.prevent="submitCode($el.value)"
                         x-on:keydown.tab.prevent="submitCode($el.value)"
                         x-on:input="
                             clearTimeout(scanTimer);
                             let val = $el.value.trim();
-                            if (/^\d{4,18}$/.test(val)) {
+                            if (val.length >= 3) {
                                 scanTimer = setTimeout(() => {
                                     submitCode(val);
-                                }, 80);
+                                }, 100);
                             }
                         "
                         class="w-full pl-10 pr-12 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm" 

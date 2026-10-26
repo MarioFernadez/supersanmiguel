@@ -141,20 +141,12 @@ class Form extends Component
         $units = \App\Models\Unit::where('is_active', true)->orderBy('name')->get();
         $branches = \App\Models\Branch::where('is_active', true)->orderBy('name')->get();
         
-        $potentialParents = [];
-        if (hasModule('meat_deboning')) {
-            $potentialParents = Product::where('is_active', true)
-                                       ->where('is_raw_material', true)
-                                       ->where('id', '!=', $this->productId)
-                                       ->orderBy('name')
-                                       ->get();
-        } elseif (hasModule('decants')) {
-            $potentialParents = Product::where('is_active', true)
-                                       ->whereNull('parent_id')
-                                       ->where('id', '!=', $this->productId)
-                                       ->orderBy('name')
-                                       ->get();
-        }
+        // Solo productos marcados como Materia Prima / Producto Global (Carne Global)
+        $potentialParents = Product::where('is_active', true)
+            ->where('is_raw_material', true)
+            ->where('id', '!=', $this->productId)
+            ->orderBy('name')
+            ->get();
 
         return view('livewire.products.form', [
             'categories' => $categories,

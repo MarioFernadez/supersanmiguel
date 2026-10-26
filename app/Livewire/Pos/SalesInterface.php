@@ -395,13 +395,16 @@ class SalesInterface extends Component
             }
         }
 
-        // 2. Direct exact match in Product by SKU
+        // 2. Coincidencia directa por SKU (exacto, sin ceros o con TRIM)
         $cleanTermNoZeros = ltrim($term, '0');
         $skusToSearch = array_unique(array_filter([$term, $cleanTermNoZeros]));
 
-        // Search active products (regular first, then any active)
         $productExact = Product::where('is_active', true)
-            ->whereIn('sku', $skusToSearch)
+            ->where(function($q) use ($skusToSearch, $term, $cleanTermNoZeros) {
+                $q->whereIn('sku', $skusToSearch)
+                  ->orWhereRaw('TRIM(sku) = ?', [$term])
+                  ->orWhereRaw('TRIM(sku) = ?', [$cleanTermNoZeros]);
+            })
             ->orderBy('is_raw_material', 'asc')
             ->first();
 
@@ -420,8 +423,12 @@ class SalesInterface extends Component
 
         // 3. Match in ProductVariation by SKU
         $variationExact = \App\Models\ProductVariation::with('product')
-            ->whereIn('sku', $skusToSearch)
             ->where('is_active', true)
+            ->where(function($q) use ($skusToSearch, $term, $cleanTermNoZeros) {
+                $q->whereIn('sku', $skusToSearch)
+                  ->orWhereRaw('TRIM(sku) = ?', [$term])
+                  ->orWhereRaw('TRIM(sku) = ?', [$cleanTermNoZeros]);
+            })
             ->first();
 
         if ($variationExact && $variationExact->product && $variationExact->product->is_active) {
