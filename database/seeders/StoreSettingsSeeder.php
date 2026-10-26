@@ -16,6 +16,7 @@ class StoreSettingsSeeder extends Seeder
             'store_phone' => ['value' => '0981 123 456', 'description' => 'Teléfono de contacto'],
             'ticket_footer' => ['value' => '¡Gracias por su compra!', 'description' => 'Mensaje al pie del ticket'],
             'shop_whatsapp' => ['value' => '981123456', 'description' => 'WhatsApp para pedidos e-commerce'],
+            'license_expires_at' => ['value' => now()->addYear()->format('Y-m-d'), 'description' => 'Fecha de vencimiento de la licencia'],
         ];
 
         foreach ($settings as $key => $data) {
