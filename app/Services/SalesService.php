@@ -63,7 +63,7 @@ class SalesService
 
                 if ($product->manage_stock) {
                     $stockable = $variation ?: $product;
-                    $branchStock = $stockable->branchStocks()->where('branch_id', $branchId)->first();
+                    $branchStock = $stockable->branchStocks()->where('branch_id', $branchId)->lockForUpdate()->first();
                     $stockToCheck = $branchStock ? $branchStock->stock : 0;
 
                     if ($stockToCheck < $quantity) {
@@ -82,7 +82,7 @@ class SalesService
                     }
 
                     if ($parentProduct->manage_stock) {
-                        $parentBranchStock = $branchId ? $parentProduct->branchStocks()->where('branch_id', $branchId)->first() : null;
+                        $parentBranchStock = $branchId ? $parentProduct->branchStocks()->where('branch_id', $branchId)->lockForUpdate()->first() : null;
                         $stockToCheck = $parentBranchStock ? (float)$parentBranchStock->stock : (float)$parentProduct->stock;
                         $quantityToDeduct = (float)$quantity * (float)($product->fraction_multiplier ?: 1.0);
 
