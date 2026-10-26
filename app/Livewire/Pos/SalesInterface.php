@@ -329,12 +329,19 @@ class SalesInterface extends Component
         $this->selectedCategory = $categoryId === $this->selectedCategory ? null : $categoryId;
     }
 
-    public function handleSearchSubmit()
+    public function handleSearchSubmit($scannedTerm = null)
     {
-        $term = trim($this->search);
-        if (empty($term)) return;
+        $term = trim($scannedTerm !== null ? (string)$scannedTerm : (string)$this->search);
+        
+        // Always clean the search state immediately so the input is clear for the next scan
+        $this->search = '';
 
-        // EAN-13 Scale Barcode Logic
+        if (empty($term)) {
+            $this->dispatch('product-scanned');
+            return;
+        }
+
+        // 1. EAN-13 Scale Barcode Logic
         // In-store scale barcodes typically start with prefixes 20 through 29.
         if (strlen($term) === 13 && preg_match('/^2[0-9]/', $term)) {
             // Format A: Prefix (2 digits) + SKU (4 digits) + Weight in grams (5 digits) + Check (1 digit)
@@ -366,13 +373,19 @@ class SalesInterface extends Component
                 } else {
                     $this->addToCartInternal($product, null, $weightInKg);
                 }
-                $this->search = '';
+                $this->dispatch('product-scanned');
                 return;
             }
         }
         
-        // If not a scale barcode, or product not found, try to find a direct exact match
-        $productExact = Product::where('is_raw_material', false)->where('sku', $term)->first();
+        // 2. Direct exact match in Product by SKU (or with leading zeros stripped)
+        $cleanTermNoZeros = ltrim($term, '0');
+        $skusToSearch = array_unique(array_filter([$term, $cleanTermNoZeros]));
+
+        $productExact = Product::where('is_raw_material', false)
+            ->whereIn('sku', $skusToSearch)
+            ->first();
+
         if ($productExact) {
             if ($productExact->has_variations) {
                 $this->selectingProduct = $productExact;
@@ -380,8 +393,45 @@ class SalesInterface extends Component
             } else {
                 $this->addToCartInternal($productExact);
             }
-            $this->search = '';
+            $this->dispatch('product-scanned');
+            return;
         }
+
+        // 3. Match in ProductVariation by SKU (barcode specific to a variation)
+        $variationExact = \App\Models\ProductVariation::with('product')
+            ->whereIn('sku', $skusToSearch)
+            ->first();
+
+        if ($variationExact && $variationExact->product && !$variationExact->product->is_raw_material) {
+            $this->addToCartInternal($variationExact->product, $variationExact);
+            $this->dispatch('product-scanned');
+            return;
+        }
+
+        // 4. Fallback search: If there's an exact match in name or only 1 product matches
+        $matchingProducts = Product::where('is_active', true)
+            ->where('is_raw_material', false)
+            ->where(function($query) use ($skusToSearch, $term) {
+                $query->whereIn('sku', $skusToSearch)
+                      ->orWhere('name', $term);
+            })
+            ->get();
+
+        if ($matchingProducts->count() === 1) {
+            $singleProduct = $matchingProducts->first();
+            if ($singleProduct->has_variations) {
+                $this->selectingProduct = $singleProduct;
+                $this->showVariationModal = true;
+            } else {
+                $this->addToCartInternal($singleProduct);
+            }
+            $this->dispatch('product-scanned');
+            return;
+        }
+
+        // 5. If not found, dispatch notification so cashier gets immediate feedback
+        $this->dispatch('error-movement', "Producto con código '{$term}' no encontrado.");
+        $this->dispatch('product-scanned');
     }
 
     public function addToCart($productId)

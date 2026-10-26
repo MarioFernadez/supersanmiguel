@@ -139,10 +139,20 @@
             
             <div class="flex gap-2">
                 <div class="relative flex-1">
-                    <input id="product-search-input" wire:model.live.debounce.150ms="search" type="text" 
-                        wire:keydown.enter="handleSearchSubmit"
+                    <input id="product-search-input" 
+                        wire:model.live.debounce.250ms="search" 
+                        type="text" 
+                        x-on:keydown.enter.prevent="
+                            let code = $el.value.trim();
+                            if (code) {
+                                $el.value = '';
+                                $wire.handleSearchSubmit(code);
+                            }
+                        "
                         class="w-full pl-10 pr-12 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm" 
-                        placeholder="Buscar producto por nombre o código (SKU)..." autofocus>
+                        placeholder="Buscar producto por nombre o código (SKU)..." 
+                        autocomplete="off"
+                        autofocus>
                     <div class="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
@@ -1294,9 +1304,6 @@
 
 <script>
     document.addEventListener('keydown', function(event) {
-        if(event.key === 'F2') { event.preventDefault(); document.getElementById('product-search-input')?.focus(); }
-        if(event.key === 'F8') { event.preventDefault(); setTimeout(() => document.getElementById('customer-search-input')?.focus(), 50); }
-        if(event.key === 'F4') { event.preventDefault(); document.getElementById('btn-pay')?.click(); }
         if(event.key === 'Escape') { 
             let active = document.activeElement;
             if(active.id === 'product-search-input') { 
@@ -1580,12 +1587,33 @@
             window.open(url, '_blank');
         });
 
-        // POS Keyboard Hotkeys
+        // Asegurar que el input de búsqueda se limpie y mantenga el foco después de procesar
+        Livewire.on('product-scanned', () => {
+            const searchInput = document.getElementById('product-search-input');
+            if (searchInput) {
+                searchInput.value = '';
+                searchInput.focus();
+            }
+        });
+
+        // Buffer y temporizador para pistola de código de barras global
+        let barcodeBuffer = '';
+        let lastKeyTime = Date.now();
+
         window.addEventListener('keydown', (e) => {
-            // F2: Cobrar
+            const activeEl = document.activeElement;
+            const isSearchInput = activeEl && activeEl.id === 'product-search-input';
+            const isOtherInput = activeEl && !isSearchInput && (
+                activeEl.tagName === 'INPUT' || 
+                activeEl.tagName === 'TEXTAREA' || 
+                activeEl.isContentEditable
+            );
+
+            // POS Keyboard Hotkeys
             if (e.key === 'F2') {
                 e.preventDefault();
                 @this.call('openPaymentModal');
+                return;
             }
             // F3: Buscar Producto
             else if (e.key === 'F3') {
@@ -1595,16 +1623,51 @@
                     searchInput.focus();
                     searchInput.select();
                 }
+                return;
             }
             // F4: Cliente
             else if (e.key === 'F4') {
                 e.preventDefault();
                 @this.call('openCustomerModal');
+                return;
             }
             // F8: Mesas
             else if (e.key === 'F8') {
                 e.preventDefault();
                 @this.set('showTableMap', true);
+                return;
+            }
+
+            // Si el cajero está escribiendo en otro input editable (ej: cliente, monto a cobrar), no interceptar
+            if (isOtherInput) {
+                return;
+            }
+
+            const currentTime = Date.now();
+            const timeDiff = currentTime - lastKeyTime;
+            lastKeyTime = currentTime;
+
+            // Las lectoras emulan teclado muy rápido (< 60ms entre teclas)
+            if (timeDiff > 60) {
+                barcodeBuffer = '';
+            }
+
+            if (e.key === 'Enter') {
+                // Si se detectó una ráfaga de escaneo y el cursor no estaba en el input de búsqueda
+                if (barcodeBuffer.length >= 3 && !isSearchInput) {
+                    e.preventDefault();
+                    const code = barcodeBuffer.trim();
+                    barcodeBuffer = '';
+                    const searchInput = document.getElementById('product-search-input');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.focus();
+                    }
+                    @this.call('handleSearchSubmit', code);
+                }
+                barcodeBuffer = '';
+            } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                barcodeBuffer += e.key;
             }
         });
     });
