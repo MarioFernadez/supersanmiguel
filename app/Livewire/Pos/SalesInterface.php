@@ -302,10 +302,14 @@ class SalesInterface extends Component
             return Category::where('is_active', true)->get();
         });
 
+        $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->orderBy('name')->get();
+        $this->paymentMethods = $paymentMethods;
+
         return view('livewire.pos.sales-interface', [
             'products'             => $this->products,
             'categories'           => $categories,
             'branchId'             => $branchId,
+            'paymentMethods'       => $paymentMethods,
             'movementCategories'   => \App\Models\CashMovementCategory::where('is_active', true)
                 ->where(function($q) {
                     $q->where('type', $this->movementType == 'in' ? 'income' : 'expense')
