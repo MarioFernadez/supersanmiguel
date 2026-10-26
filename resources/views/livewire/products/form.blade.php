@@ -187,9 +187,11 @@
                                             </label>
                                             <select wire:model="parent_id" class="w-full border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-700 bg-white focus:ring-2 {{ hasModule('meat_deboning') ? 'focus:ring-rose-500' : 'focus:ring-fuchsia-500' }} focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
                                                 <option value="">-- Seleccionar Carne Global Padre --</option>
-                                                @foreach($potentialParents as $parent)
+                                                @forelse($potentialParents as $parent)
                                                     <option value="{{ $parent->id }}">{{ $parent->name }} (Stock: {{ number_format($parent->stock, 2) }} {{ $parent->unit_type }})</option>
-                                                @endforeach
+                                                @empty
+                                                    <option value="" disabled>⚠️ No hay ningún Producto Global registrado. Activa "¿Es Producto Global?" en la carne padre primero.</option>
+                                                @endforelse
                                             </select>
                                             @error('parent_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                                         </div>

@@ -144,10 +144,7 @@ class Form extends Component
         $potentialParents = [];
         if (hasModule('meat_deboning')) {
             $potentialParents = Product::where('is_active', true)
-                                       ->where(function($q) {
-                                           $q->where('is_raw_material', true)
-                                             ->orWhereNull('parent_id');
-                                       })
+                                       ->where('is_raw_material', true)
                                        ->where('id', '!=', $this->productId)
                                        ->orderBy('name')
                                        ->get();
