@@ -329,45 +329,38 @@ class SalesInterface extends Component
         if (empty($term)) return;
 
         // EAN-13 Scale Barcode Logic
-        // Prefixes for weight scales are usually 20, 21, 22...
-        // Format: [2 digits prefix][4-5 digits SKU][5 digits weight][1 check digit]
-        // Defaulting to prefix '20' for now.
-        if (strlen($term) === 13 && str_starts_with($term, '20')) {
-            // Usually 4 digits for item code in typical configs, let's try 4 digits first
-            $skuCode = substr($term, 2, 4); // "1234"
-            $weightString = substr($term, 6, 6); // Includes check digit at the end. Wait, actually weight is 5 digits and check digit is 1.
-            $weightString = substr($term, 6, 5); // "00250" = 250g
-            $weightInKg = (float)$weightString / 1000;
-            
-            // Try to find product by this exact SKU or padded
-            $product = Product::where('sku', ltrim($skuCode, '0'))->orWhere('sku', $skuCode)->first();
-            
-            // If not found with 4 digits, try 5 digits (some scales use 5 digits for item code and 4 for weight)
-            if (!$product) {
-                $skuCode5 = substr($term, 2, 5);
-                $weightString4 = substr($term, 7, 5); // wait, total is 13. Prefix(2) + SKU(5) + Weight(5) + Check(1) = 13
-                // Let's use 5 digits weight always:
-                $weightString5 = substr($term, 7, 5);
-                $weightInKg5 = (float)$weightString5 / 1000;
-                
-                $product = Product::where('sku', ltrim($skuCode5, '0'))->orWhere('sku', $skuCode5)->first();
-                if ($product) {
-                    $weightInKg = $weightInKg5;
-                }
-            }
+        // In-store scale barcodes typically start with prefixes 20 through 29.
+        if (strlen($term) === 13 && preg_match('/^2[0-9]/', $term)) {
+            // Format A: Prefix (2 digits) + SKU (4 digits) + Weight in grams (5 digits) + Check (1 digit)
+            // e.g. 20 0123 01500 4 -> SKU: 123, Weight: 1.500 Kg
+            $skuCode4 = substr($term, 2, 4);
+            $weightString4 = substr($term, 6, 5);
+            $weightInKg4 = (float)$weightString4 / 1000;
+
+            // Format B: Prefix (2 digits) + SKU (5 digits) + Weight in grams (5 digits) + Check (1 digit)
+            // e.g. 20 00123 01500 4 -> SKU: 123, Weight: 1.500 Kg
+            $skuCode5 = substr($term, 2, 5);
+            $weightString5 = substr($term, 7, 5);
+            $weightInKg5 = (float)$weightString5 / 1000;
+
+            // Try to find product by SKU (4 digits or 5 digits, trimmed or raw)
+            $product = Product::whereIn('sku', [
+                $skuCode4, ltrim($skuCode4, '0'),
+                $skuCode5, ltrim($skuCode5, '0')
+            ])->first();
+
+            $weightInKg = ($product && ($product->sku === $skuCode5 || $product->sku === ltrim($skuCode5, '0'))) 
+                ? $weightInKg5 
+                : $weightInKg4;
 
             if ($product) {
-                // Determine if it has variations (though meat cuts usually don't)
                 if ($product->has_variations) {
                     $this->selectingProduct = $product;
                     $this->showVariationModal = true;
-                    // Variation logic doesn't support automatic weight setting yet in this flow,
-                    // so we just show the modal.
                 } else {
                     $this->addToCartInternal($product, null, $weightInKg);
                 }
-                
-                $this->search = ''; // Clear search
+                $this->search = '';
                 return;
             }
         }
@@ -435,15 +428,17 @@ class SalesInterface extends Component
             }
         } elseif ($product->parent_id) {
             $parentProduct = Product::find($product->parent_id);
-            if ($parentProduct && $parentProduct->manage_stock && isset($branchId)) {
-                $parentBranchStock = $parentProduct->branchStocks()->where('branch_id', $branchId)->first();
-                $parentStock = $parentBranchStock ? $parentBranchStock->stock : 0;
+            if ($parentProduct && $parentProduct->manage_stock) {
+                $parentBranchStock = isset($branchId) ? $parentProduct->branchStocks()->where('branch_id', $branchId)->first() : null;
+                $parentStock = $parentBranchStock ? (float)$parentBranchStock->stock : (float)$parentProduct->stock;
                 
                 $currentQty = isset($this->cart[$cartKey]) ? $this->cart[$cartKey]['quantity'] : 0;
-                $quantityToDeduct = ($currentQty + $quantity) * $product->fraction_multiplier;
+                $multiplier = (float)($product->fraction_multiplier ?: 1.0);
+                $quantityToDeduct = ($currentQty + $quantity) * $multiplier;
                 
                 if ($parentStock < $quantityToDeduct) {
-                    $this->dispatch('error-movement', 'Stock insuficiente en la botella padre. Disponible: ' . $parentStock . ' (' . ($parentStock / $product->fraction_multiplier) . ' decants max)');
+                    $unit = $parentProduct->unit_type ?: 'Kg';
+                    $this->dispatch('error-movement', "Stock insuficiente en {$parentProduct->name}. Disponible: " . number_format($parentStock, 2) . " {$unit}");
                     return;
                 }
             }

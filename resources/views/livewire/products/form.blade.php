@@ -143,45 +143,61 @@
                             </div>
                         </div>
                         @endif
-                        <!-- Decants / Fraccionamiento -->
-                        @if(hasModule('decants'))
+                        <!-- Decants / Materia Prima Global (Carnicería) -->
+                        @if(hasModule('decants') || hasModule('meat_deboning'))
                         <div class="mt-8 pt-8 border-t border-gray-100 border-dashed dark:border-gray-700">
                             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                                 <div>
-                                    <h4 class="text-sm font-black text-fuchsia-900 uppercase tracking-widest flex items-center gap-2 dark:text-fuchsia-400">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                                        Es un Decant (Fracción)
+                                    <h4 class="text-sm font-black {{ hasModule('meat_deboning') ? 'text-rose-900 dark:text-rose-400' : 'text-fuchsia-900 dark:text-fuchsia-400' }} uppercase tracking-widest flex items-center gap-2">
+                                        @if(hasModule('meat_deboning'))
+                                            🥩 Materia Prima Global (Cortes / Carnicería)
+                                        @else
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                            Es un Decant (Fracción)
+                                        @endif
                                     </h4>
-                                    <p class="text-[10px] text-gray-500 font-bold uppercase mt-1 dark:text-gray-400">Activa si este producto descuenta stock de un frasco padre.</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase mt-1 dark:text-gray-400">
+                                        @if(hasModule('meat_deboning'))
+                                            Activa si este corte (ej: Vacío, Costilla, Chorizo) descuenta stock automáticamente de una carne global (ej: Carne de Res).
+                                        @else
+                                            Activa si este producto descuenta stock de un frasco padre.
+                                        @endif
+                                    </p>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" wire:model.live="is_decant" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-fuchsia-300 dark:peer-focus:ring-fuchsia-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-fuchsia-600 dark:bg-gray-700"></div>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 {{ hasModule('meat_deboning') ? 'peer-focus:ring-rose-300 dark:peer-focus:ring-rose-800 peer-checked:bg-rose-600' : 'peer-focus:ring-fuchsia-300 dark:peer-focus:ring-fuchsia-800 peer-checked:bg-fuchsia-600' }} rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:bg-gray-700"></div>
                                 </label>
                             </div>
 
                             @if($is_decant)
-                                <div class="bg-fuchsia-50/50 rounded-2xl p-4 border border-fuchsia-100/50 dark:bg-fuchsia-900/10 dark:border-fuchsia-800/30">
+                                <div class="{{ hasModule('meat_deboning') ? 'bg-rose-50/50 border-rose-100/50 dark:bg-rose-900/10 dark:border-rose-800/30' : 'bg-fuchsia-50/50 border-fuchsia-100/50 dark:bg-fuchsia-900/10 dark:border-fuchsia-800/30' }} rounded-2xl p-4 border">
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label class="block text-[10px] font-black text-fuchsia-800 mb-2 uppercase tracking-widest dark:text-fuchsia-400">Seleccionar Producto Padre (Botella)</label>
-                                            <select wire:model="parent_id" class="w-full border-fuchsia-200 rounded-xl py-3 px-4 text-sm text-gray-700 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent transition dark:bg-gray-900 dark:border-fuchsia-800/50 dark:text-gray-300">
-                                                <option value="">-- Buscar Producto Padre --</option>
+                                            <label class="block text-[10px] font-black {{ hasModule('meat_deboning') ? 'text-rose-800 dark:text-rose-400' : 'text-fuchsia-800 dark:text-fuchsia-400' }} mb-2 uppercase tracking-widest">
+                                                {{ hasModule('meat_deboning') ? 'Materia Prima Origen (Carne Global)' : 'Seleccionar Producto Padre (Botella)' }}
+                                            </label>
+                                            <select wire:model="parent_id" class="w-full border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-700 bg-white focus:ring-2 {{ hasModule('meat_deboning') ? 'focus:ring-rose-500' : 'focus:ring-fuchsia-500' }} focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300">
+                                                <option value="">-- Seleccionar Carne Global Padre --</option>
                                                 @foreach($potentialParents as $parent)
-                                                    <option value="{{ $parent->id }}">{{ $parent->name }} (Stock: {{ $parent->stock }})</option>
+                                                    <option value="{{ $parent->id }}">{{ $parent->name }} (Stock: {{ number_format($parent->stock, 2) }} {{ $parent->unit_type }})</option>
                                                 @endforeach
                                             </select>
                                             @error('parent_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                                         </div>
                                         <div>
-                                            <label class="block text-[10px] font-black text-fuchsia-800 mb-2 uppercase tracking-widest dark:text-fuchsia-400">Multiplicador de Consumo (ej: 0.1)</label>
-                                            <input type="number" step="0.001" wire:model="fraction_multiplier" class="w-full border-fuchsia-200 rounded-xl py-3 px-4 text-sm text-gray-700 bg-white focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent transition dark:bg-gray-900 dark:border-fuchsia-800/50 dark:text-gray-300" placeholder="0.100">
-                                            <p class="text-[9px] text-fuchsia-600/80 font-bold uppercase mt-2 dark:text-fuchsia-500/80">Ej: Si el padre tiene 1 unidad (100ml) y vendes 10ml, el multiplicador es 0.1.</p>
+                                            <label class="block text-[10px] font-black {{ hasModule('meat_deboning') ? 'text-rose-800 dark:text-rose-400' : 'text-fuchsia-800 dark:text-fuchsia-400' }} mb-2 uppercase tracking-widest">
+                                                {{ hasModule('meat_deboning') ? 'Factor de Descuento (1 = 1 Kg vendido descuenta 1 Kg)' : 'Multiplicador de Consumo (ej: 0.1)' }}
+                                            </label>
+                                            <input type="number" step="0.001" wire:model="fraction_multiplier" class="w-full border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-700 bg-white focus:ring-2 {{ hasModule('meat_deboning') ? 'focus:ring-rose-500' : 'focus:ring-fuchsia-500' }} focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300" placeholder="1.000">
+                                            <p class="text-[9px] {{ hasModule('meat_deboning') ? 'text-rose-600/80 dark:text-rose-400/80' : 'text-fuchsia-600/80 dark:text-fuchsia-400/80' }} font-bold uppercase mt-2">
+                                                {{ hasModule('meat_deboning') ? 'Por defecto es 1.0 (cada 1 Kg de este corte vendido descuenta 1 Kg del stock de carne global).' : 'Ej: Si el padre tiene 1 unidad (100ml) y vendes 10ml, el multiplicador es 0.1.' }}
+                                            </p>
                                             @error('fraction_multiplier') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                                         </div>
                                     </div>
-                                    <div class="mt-4 text-xs font-bold text-fuchsia-700 bg-fuchsia-100 p-3 rounded-lg dark:bg-fuchsia-900/30 dark:text-fuchsia-300">
-                                        ℹ️ Al guardar como Decant, el stock propio de este producto se desactiva. Tomará el stock directamente de su producto padre.
+                                    <div class="mt-4 text-xs font-bold {{ hasModule('meat_deboning') ? 'text-rose-700 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-300' : 'text-fuchsia-700 bg-fuchsia-100 dark:bg-fuchsia-900/30 dark:text-fuchsia-300' }} p-3 rounded-lg">
+                                        ℹ️ Al guardar, este corte no requiere carga previa de stock individual: se descontará automáticamente de la carne global seleccionada en cada venta o lectura de balanza.
                                     </div>
                                 </div>
                             @endif

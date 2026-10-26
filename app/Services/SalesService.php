@@ -75,19 +75,20 @@ class SalesService
                     }
                     $stockable->decrement('stock', $quantity);
                 } elseif ($product->parent_id) {
-                    // Decants / Fractionation logic
+                    // Materia Prima Global (Carnicería) / Decants (Fraccionamiento)
                     $parentProduct = Product::lockForUpdate()->find($product->parent_id);
                     if (!$parentProduct) {
-                        throw new Exception("El producto padre del decant '{$item['name']}' ya no existe.");
+                        throw new Exception("El producto padre de '{$item['name']}' no existe.");
                     }
 
                     if ($parentProduct->manage_stock) {
-                        $parentBranchStock = $parentProduct->branchStocks()->where('branch_id', $branchId)->first();
-                        $stockToCheck = $parentBranchStock ? $parentBranchStock->stock : 0;
-                        $quantityToDeduct = $quantity * $product->fraction_multiplier;
+                        $parentBranchStock = $branchId ? $parentProduct->branchStocks()->where('branch_id', $branchId)->first() : null;
+                        $stockToCheck = $parentBranchStock ? (float)$parentBranchStock->stock : (float)$parentProduct->stock;
+                        $quantityToDeduct = (float)$quantity * (float)($product->fraction_multiplier ?: 1.0);
 
                         if ($stockToCheck < $quantityToDeduct) {
-                            throw new Exception("Stock insuficiente en la botella original para servir el decant: " . $item['name']);
+                            $unit = $parentProduct->unit_type ?: 'Kg';
+                            throw new Exception("Stock insuficiente en la materia prima '{$parentProduct->name}'. Disponible: " . number_format($stockToCheck, 2) . " {$unit}");
                         }
 
                         if ($parentBranchStock) {

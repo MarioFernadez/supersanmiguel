@@ -124,7 +124,7 @@ class Form extends Component
         $branches = \App\Models\Branch::where('is_active', true)->orderBy('name')->get();
         
         $potentialParents = [];
-        if (hasModule('decants')) {
+        if (hasModule('decants') || hasModule('meat_deboning')) {
             $potentialParents = Product::where('is_active', true)
                                        ->whereNull('parent_id') // avoid decant of decant
                                        ->where('id', '!=', $this->productId) // avoid self
