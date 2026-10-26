@@ -329,17 +329,38 @@ class SalesInterface extends Component
         $this->selectedCategory = $categoryId === $this->selectedCategory ? null : $categoryId;
     }
 
+    public function updatedSearch($value)
+    {
+        $term = trim((string)$value);
+        if (empty($term)) return;
+
+        // Auto-detección: si el texto leído en el buscador coincide con un código de barra / SKU,
+        // se agrega de forma 100% automática al carrito y se limpia el buscador de inmediato:
+        $this->tryAutoAddBarcode($term);
+    }
+
     public function handleSearchSubmit($scannedTerm = null)
     {
         $term = trim($scannedTerm !== null ? (string)$scannedTerm : (string)$this->search);
-        
-        // Always clean the search state immediately so the input is clear for the next scan
         $this->search = '';
 
         if (empty($term)) {
             $this->dispatch('product-scanned');
             return;
         }
+
+        $added = $this->tryAutoAddBarcode($term, true);
+        if (!$added) {
+            $this->dispatch('error-movement', "Producto con código '{$term}' no encontrado.");
+            $this->dispatch('beep-error');
+            $this->dispatch('product-scanned');
+        }
+    }
+
+    protected function tryAutoAddBarcode($term, $isExplicitSubmit = false): bool
+    {
+        $term = trim((string)$term);
+        if (empty($term)) return false;
 
         // 1. EAN-13 Scale Barcode Logic (prefixes 20 through 29)
         if (strlen($term) === 13 && preg_match('/^2[0-9]/', $term)) {
@@ -367,12 +388,13 @@ class SalesInterface extends Component
                 } else {
                     $this->addToCartInternal($product, null, $weightInKg);
                 }
+                $this->search = '';
                 $this->dispatch('product-scanned');
                 $this->dispatch('beep-success');
-                return;
+                return true;
             }
         }
-        
+
         // 2. Direct exact match in Product by SKU
         $cleanTermNoZeros = ltrim($term, '0');
         $skusToSearch = array_unique(array_filter([$term, $cleanTermNoZeros]));
@@ -390,9 +412,10 @@ class SalesInterface extends Component
             } else {
                 $this->addToCartInternal($productExact);
             }
+            $this->search = '';
             $this->dispatch('product-scanned');
             $this->dispatch('beep-success');
-            return;
+            return true;
         }
 
         // 3. Match in ProductVariation by SKU
@@ -403,36 +426,37 @@ class SalesInterface extends Component
 
         if ($variationExact && $variationExact->product && $variationExact->product->is_active) {
             $this->addToCartInternal($variationExact->product, $variationExact);
+            $this->search = '';
             $this->dispatch('product-scanned');
             $this->dispatch('beep-success');
-            return;
+            return true;
         }
 
-        // 4. Fallback search: exact match in name or single product match
-        $matchingProducts = Product::where('is_active', true)
-            ->where(function($query) use ($skusToSearch, $term) {
-                $query->whereIn('sku', $skusToSearch)
-                      ->orWhere('name', $term);
-            })
-            ->get();
+        // 4. Fallback search: if explicit submit (Enter/Tab) and single product match
+        if ($isExplicitSubmit) {
+            $matchingProducts = Product::where('is_active', true)
+                ->where(function($query) use ($skusToSearch, $term) {
+                    $query->whereIn('sku', $skusToSearch)
+                          ->orWhere('name', $term);
+                })
+                ->get();
 
-        if ($matchingProducts->count() === 1) {
-            $singleProduct = $matchingProducts->first();
-            if ($singleProduct->has_variations) {
-                $this->selectingProduct = $singleProduct;
-                $this->showVariationModal = true;
-            } else {
-                $this->addToCartInternal($singleProduct);
+            if ($matchingProducts->count() === 1) {
+                $singleProduct = $matchingProducts->first();
+                if ($singleProduct->has_variations) {
+                    $this->selectingProduct = $singleProduct;
+                    $this->showVariationModal = true;
+                } else {
+                    $this->addToCartInternal($singleProduct);
+                }
+                $this->search = '';
+                $this->dispatch('product-scanned');
+                $this->dispatch('beep-success');
+                return true;
             }
-            $this->dispatch('product-scanned');
-            $this->dispatch('beep-success');
-            return;
         }
 
-        // 5. If not found, dispatch notification and error beep
-        $this->dispatch('error-movement', "Producto con código '{$term}' no encontrado.");
-        $this->dispatch('beep-error');
-        $this->dispatch('product-scanned');
+        return false;
     }
 
     public function addToCart($productId)

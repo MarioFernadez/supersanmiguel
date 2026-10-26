@@ -139,49 +139,30 @@
             
             <div class="flex gap-2">
                 <div class="relative flex-1" x-data="{
-                    lastCharTime: 0,
                     scanTimer: null,
-                    submitScan(code) {
-                        code = (code || '').trim();
-                        if (!code) return;
+                    submitCode(val) {
+                        val = (val || '').trim();
+                        if (!val) return;
                         clearTimeout(this.scanTimer);
-                        const input = $el.querySelector('input');
+                        const input = document.getElementById('product-search-input');
                         if (input) input.value = '';
-                        $wire.handleSearchSubmit(code);
-                    },
-                    handleKey(e) {
-                        // Si la pistola envía Enter o Tab
-                        if (e.key === 'Enter' || e.key === 'Tab') {
-                            e.preventDefault();
-                            clearTimeout(this.scanTimer);
-                            let code = e.target.value.trim();
-                            if (code) {
-                                this.submitScan(code);
-                            }
-                            return;
-                        }
-
-                        // Detección de ráfaga para pistolas que NO envían Enter
-                        const now = Date.now();
-                        const diff = now - this.lastCharTime;
-                        this.lastCharTime = now;
-
-                        clearTimeout(this.scanTimer);
-                        // Si los caracteres entraron a velocidad de lectora (< 65ms por tecla)
-                        if (diff < 65) {
-                            this.scanTimer = setTimeout(() => {
-                                let code = e.target.value.trim();
-                                if (code.length >= 3) {
-                                    this.submitScan(code);
-                                }
-                            }, 70);
-                        }
+                        $wire.handleSearchSubmit(val);
                     }
                 }">
                     <input id="product-search-input" 
-                        wire:model.live.debounce.300ms="search" 
+                        wire:model.live.debounce.150ms="search" 
                         type="text" 
-                        x-on:keydown="handleKey($event)"
+                        x-on:keydown.enter.prevent="submitCode($el.value)"
+                        x-on:keydown.tab.prevent="submitCode($el.value)"
+                        x-on:input="
+                            clearTimeout(scanTimer);
+                            let val = $el.value.trim();
+                            if (/^\d{4,18}$/.test(val)) {
+                                scanTimer = setTimeout(() => {
+                                    submitCode(val);
+                                }, 80);
+                            }
+                        "
                         class="w-full pl-10 pr-12 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm" 
                         placeholder="Buscar producto por nombre o código (SKU)..." 
                         autocomplete="off"
