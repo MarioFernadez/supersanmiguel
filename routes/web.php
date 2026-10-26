@@ -81,8 +81,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/expenses/categories', \App\Livewire\Expenses\Categories::class)->name('expenses.categories.index');
         Route::get('/collections', \App\Livewire\Admin\Collections::class)->name('admin.collections');
         // Taller de Desposte (módulo minimarket / carnicería)
-        Route::get('/admin/deboning', \App\Livewire\Admin\Deboning\Index::class)->name('admin.deboning.index');
-        Route::get('/admin/deboning/create', \App\Livewire\Admin\Deboning\Create::class)->name('admin.deboning.create');
+        Route::get('/deboning', \App\Livewire\Admin\Deboning\Index::class)->name('admin.deboning.index');
+        Route::get('/deboning/create', \App\Livewire\Admin\Deboning\Create::class)->name('admin.deboning.create');
+        Route::get('/admin/deboning', \App\Livewire\Admin\Deboning\Index::class);
+        Route::get('/admin/deboning/create', \App\Livewire\Admin\Deboning\Create::class);
     });
 
     // Admin-Only Routes (system config)

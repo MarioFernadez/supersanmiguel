@@ -133,20 +133,20 @@
         <div x-show="open && !collapsed" x-collapse>
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 <a href="{{ route('pos.index') }}" class="{{ $subLinkClass(request()->routeIs('pos.*')) }}">
-                    ⚡ Punto de Venta (POS)
+                    Punto de Venta (POS)
                 </a>
                 @if(hasModule('restaurant'))
                 <a href="{{ route('pos.index') }}" class="{{ $subLinkClass(false) }}">
-                    🍽️ Salón y Mesas
+                    Salón y Mesas
                 </a>
                 @endif
                 @if(\App\Services\LicenseService::isEcommerceEnabled())
                 <a href="{{ route('admin.web-orders.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('admin.web-orders.*')) }}">
-                    🌐 Pedidos Online
+                    Pedidos Online
                 </a>
                 @endif
                 <a href="{{ route('reports.cash') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('reports.cash') || request()->routeIs('reports.cash-movements')) }}">
-                    💵 Arqueos y Cierres de Caja
+                    Arqueos y Cierres de Caja
                 </a>
             </div>
         </div>
@@ -157,14 +157,14 @@
                 Pedidos & POS
             </div>
             <div class="p-1 space-y-0.5">
-                <a href="{{ route('pos.index') }}" class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">⚡ Punto de Venta (POS)</a>
+                <a href="{{ route('pos.index') }}" class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Punto de Venta (POS)</a>
                 @if(hasModule('restaurant'))
-                <a href="{{ route('pos.index') }}" class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🍽️ Salón y Mesas</a>
+                <a href="{{ route('pos.index') }}" class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Salón y Mesas</a>
                 @endif
                 @if(\App\Services\LicenseService::isEcommerceEnabled())
-                <a href="{{ route('admin.web-orders.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🌐 Pedidos Online</a>
+                <a href="{{ route('admin.web-orders.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Pedidos Online</a>
                 @endif
-                <a href="{{ route('reports.cash') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">💵 Arqueos y Cierres de Caja</a>
+                <a href="{{ route('reports.cash') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Arqueos y Cierres de Caja</a>
             </div>
         </div>
     </div>
@@ -199,16 +199,16 @@
         <div x-show="open && !collapsed" x-collapse>
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 <a href="{{ route('products.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('products.*') && !request()->routeIs('products.print-labels')) }}">
-                    📦 Productos
+                    Productos
                 </a>
                 <a href="{{ route('categories.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('categories.*')) }}">
-                    🏷️ Categorías
+                    Categorías
                 </a>
                 <a href="{{ route('products.print-labels') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('products.print-labels')) }}">
-                    🖨️ Etiquetas & Barcodes
+                    Etiquetas & Barcodes
                 </a>
                 <a href="{{ route('settings.units') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.units')) }}">
-                    📏 Unidades de Medida
+                    Unidades de Medida
                 </a>
             </div>
         </div>
@@ -219,10 +219,10 @@
                 Catálogo
             </div>
             <div class="p-1 space-y-0.5">
-                <a href="{{ route('products.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📦 Productos</a>
-                <a href="{{ route('categories.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🏷️ Categorías</a>
-                <a href="{{ route('products.print-labels') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🖨️ Etiquetas & Barcodes</a>
-                <a href="{{ route('settings.units') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📏 Unidades de Medida</a>
+                <a href="{{ route('products.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Productos</a>
+                <a href="{{ route('categories.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Categorías</a>
+                <a href="{{ route('products.print-labels') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Etiquetas & Barcodes</a>
+                <a href="{{ route('settings.units') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Unidades de Medida</a>
             </div>
         </div>
     </div>
@@ -256,11 +256,11 @@
         <div x-show="open && !collapsed" x-collapse>
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 <a href="{{ route('customers.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('customers.*')) }}">
-                    👥 Directorio Clientes
+                    Directorio Clientes
                 </a>
                 @can('gerente')
                 <a href="{{ route('admin.collections') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('admin.collections')) }}">
-                    💳 Cuentas por Cobrar (Créditos)
+                    Cuentas por Cobrar (Créditos)
                 </a>
                 @endcan
             </div>
@@ -272,9 +272,9 @@
                 Clientes
             </div>
             <div class="p-1 space-y-0.5">
-                <a href="{{ route('customers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">👥 Directorio Clientes</a>
+                <a href="{{ route('customers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Directorio Clientes</a>
                 @can('gerente')
-                <a href="{{ route('admin.collections') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">💳 Cuentas por Cobrar (Créditos)</a>
+                <a href="{{ route('admin.collections') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Cuentas por Cobrar (Créditos)</a>
                 @endcan
             </div>
         </div>
@@ -288,12 +288,12 @@
     </div>
 
     {{-- CARNICERÍA / DESPOSTE --}}
-    @if(hasModule('meat_deboning'))
+    @can('gerente')
     <div class="relative group/flyout">
         <a href="{{ route('admin.deboning.index') }}" wire:navigate
            :class="collapsed ? 'justify-center px-0 h-11' : 'px-3.5 py-2.5 gap-2.5'"
            class="{{ $topLinkClass(request()->routeIs('admin.deboning.*')) }}"
-           title="Desposte de Carne">
+           title="Desposte de Carne (Carnicería)">
             <svg class="w-5 h-5 flex-shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242L12 5m0 7l-7 7"/>
             </svg>
@@ -301,10 +301,10 @@
             <span x-show="!collapsed" class="ml-auto text-[8.5px] bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded font-black flex-shrink-0">CARNE</span>
         </a>
         <div x-show="collapsed" class="absolute left-full top-0 ml-1 px-3 py-2 bg-[#1e282c] border border-slate-700 text-white text-xs font-semibold rounded shadow-2xl whitespace-nowrap hidden group-hover/flyout:block z-[9999]">
-            🥩 Desposte de Carne
+            Desposte de Carne
         </div>
     </div>
-    @endif
+    @endcan
 
     {{-- COMPRAS & PROVEEDORES (Camión / Envíos PrestaShop) --}}
     @can('gerente')
@@ -335,10 +335,10 @@
         <div x-show="open && !collapsed" x-collapse>
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 <a href="{{ route('purchases.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('purchases.*')) }}">
-                    📥 Registro de Compras
+                    Registro de Compras
                 </a>
                 <a href="{{ route('suppliers.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('suppliers.*')) }}">
-                    🏭 Proveedores
+                    Proveedores
                 </a>
             </div>
         </div>
@@ -349,8 +349,8 @@
                 Compras
             </div>
             <div class="p-1 space-y-0.5">
-                <a href="{{ route('purchases.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📥 Registro de Compras</a>
-                <a href="{{ route('suppliers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🏭 Proveedores</a>
+                <a href="{{ route('purchases.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Registro de Compras</a>
+                <a href="{{ route('suppliers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Proveedores</a>
             </div>
         </div>
     </div>
@@ -383,10 +383,10 @@
         <div x-show="open && !collapsed" x-collapse>
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 <a href="{{ route('expenses.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('expenses.*') && !request()->routeIs('expenses.categories.*')) }}">
-                    💸 Gastos & Egresos
+                    Gastos & Egresos
                 </a>
                 <a href="{{ route('expenses.categories.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('expenses.categories.*')) }}">
-                    📂 Categorías de Gastos
+                    Categorías de Gastos
                 </a>
             </div>
         </div>
@@ -397,8 +397,8 @@
                 Finanzas
             </div>
             <div class="p-1 space-y-0.5">
-                <a href="{{ route('expenses.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">💸 Gastos & Egresos</a>
-                <a href="{{ route('expenses.categories.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📂 Categorías de Gastos</a>
+                <a href="{{ route('expenses.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Gastos & Egresos</a>
+                <a href="{{ route('expenses.categories.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Categorías de Gastos</a>
             </div>
         </div>
     </div>
@@ -443,16 +443,16 @@
         <div x-show="open && !collapsed" x-collapse>
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 <a href="{{ route('reports.sales') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('reports.sales')) }}">
-                    📊 Detalle de Ventas
+                    Detalle de Ventas
                 </a>
                 <a href="{{ route('reports.salesperson') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('reports.salesperson')) }}">
-                    🏆 Ranking Vendedores
+                    Ranking Vendedores
                 </a>
                 <a href="{{ route('reports.inventory') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('reports.inventory')) }}">
-                    📦 Estado de Inventario
+                    Estado de Inventario
                 </a>
                 <a href="{{ route('reports.debtors') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('reports.debtors')) }}">
-                    📋 Saldos Deudores
+                    Saldos Deudores
                 </a>
             </div>
         </div>
@@ -463,10 +463,10 @@
                 Estadísticas & Reportes
             </div>
             <div class="p-1 space-y-0.5">
-                <a href="{{ route('reports.sales') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📊 Detalle de Ventas</a>
-                <a href="{{ route('reports.salesperson') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🏆 Ranking Vendedores</a>
-                <a href="{{ route('reports.inventory') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📦 Estado de Inventario</a>
-                <a href="{{ route('reports.debtors') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📋 Saldos Deudores</a>
+                <a href="{{ route('reports.sales') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Detalle de Ventas</a>
+                <a href="{{ route('reports.salesperson') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Ranking Vendedores</a>
+                <a href="{{ route('reports.inventory') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Estado de Inventario</a>
+                <a href="{{ route('reports.debtors') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Saldos Deudores</a>
             </div>
         </div>
     </div>
@@ -506,25 +506,25 @@
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 @can('admin')
                 <a href="{{ route('settings.general') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.general')) }}">
-                    ⚙️ Ajustes Generales
+                    Ajustes Generales
                 </a>
                 <a href="{{ route('settings.billing') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.billing')) }}">
-                    🧾 Plan & Suscripción
+                    Plan & Suscripción
                 </a>
                 <a href="{{ route('settings.invoicing') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.invoicing')) }}">
-                    📑 Facturación Electrónica
+                    Facturación Electrónica
                 </a>
                 <a href="{{ route('settings.quotation') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.quotation')) }}">
-                    💱 Cotizaciones Divisas
+                    Cotizaciones Divisas
                 </a>
                 @if(hasModule('restaurant'))
                 <a href="{{ route('settings.restaurant') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.restaurant')) }}">
-                    🍽️ Mesas & Mozos
+                    Mesas & Mozos
                 </a>
                 @endif
                 @if(\App\Services\LicenseService::isEcommerceEnabled())
                 <a href="{{ route('settings.customization') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.customization') || request()->routeIs('pages.*') || request()->routeIs('admin.media')) }}">
-                    🎨 Personalización Web
+                    Personalización Web
                 </a>
                 @endif
                 @endcan
@@ -538,15 +538,15 @@
             </div>
             <div class="p-1 space-y-0.5">
                 @can('admin')
-                <a href="{{ route('settings.general') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">⚙️ Ajustes Generales</a>
-                <a href="{{ route('settings.billing') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🧾 Plan & Suscripción</a>
-                <a href="{{ route('settings.invoicing') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📑 Facturación Electrónica</a>
-                <a href="{{ route('settings.quotation') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">💱 Cotizaciones Divisas</a>
+                <a href="{{ route('settings.general') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Ajustes Generales</a>
+                <a href="{{ route('settings.billing') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Plan & Suscripción</a>
+                <a href="{{ route('settings.invoicing') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Facturación Electrónica</a>
+                <a href="{{ route('settings.quotation') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Cotizaciones Divisas</a>
                 @if(hasModule('restaurant'))
-                <a href="{{ route('settings.restaurant') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🍽️ Mesas & Mozos</a>
+                <a href="{{ route('settings.restaurant') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Mesas & Mozos</a>
                 @endif
                 @if(\App\Services\LicenseService::isEcommerceEnabled())
-                <a href="{{ route('settings.customization') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🎨 Personalización Web</a>
+                <a href="{{ route('settings.customization') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Personalización Web</a>
                 @endif
                 @endcan
             </div>
@@ -585,28 +585,28 @@
             <div class="pb-1.5 pt-0.5 space-y-0.5 pl-8 pr-2.5">
                 @can('admin')
                 <a href="{{ route('branches.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('branches.*')) }}">
-                    🏢 Sucursales
+                    Sucursales
                 </a>
                 <a href="{{ route('cash_registers.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('cash_registers.*')) }}">
-                    💻 Cajas Registradoras
+                    Cajas Registradoras
                 </a>
                 <a href="{{ route('users.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('users.*')) }}">
-                    🔑 Usuarios & Roles
+                    Usuarios & Roles
                 </a>
                 @endcan
 
                 @can('gerente')
                 <a href="{{ route('sellers.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('sellers.*')) }}">
-                    💼 Vendedores & Comisiones
+                    Vendedores & Comisiones
                 </a>
                 @endcan
 
                 @if(auth()->user()->isDeveloper())
                 <a href="{{ route('master.licensing') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('master.licensing')) }}">
-                    ⚡ Master Licensing
+                    Master Licensing
                 </a>
                 <a href="{{ route('master.sifen') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('master.sifen*')) }}">
-                    📑 Facturación SIFEN
+                    Facturación SIFEN
                 </a>
                 @endif
             </div>
@@ -619,16 +619,16 @@
             </div>
             <div class="p-1 space-y-0.5">
                 @can('admin')
-                <a href="{{ route('branches.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🏢 Sucursales</a>
-                <a href="{{ route('cash_registers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">💻 Puntos de Venta</a>
-                <a href="{{ route('users.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">🔑 Usuarios</a>
+                <a href="{{ route('branches.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Sucursales</a>
+                <a href="{{ route('cash_registers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Puntos de Venta</a>
+                <a href="{{ route('users.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Usuarios</a>
                 @endcan
                 @can('gerente')
-                <a href="{{ route('sellers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">💼 Vendedores</a>
+                <a href="{{ route('sellers.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Vendedores</a>
                 @endcan
                 @if(auth()->user()->isDeveloper())
-                <a href="{{ route('master.licensing') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">⚡ Master Licensing</a>
-                <a href="{{ route('master.sifen') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">📑 Facturación SIFEN</a>
+                <a href="{{ route('master.licensing') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Master Licensing</a>
+                <a href="{{ route('master.sifen') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Facturación SIFEN</a>
                 @endif
             </div>
         </div>

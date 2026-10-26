@@ -30,7 +30,9 @@ if (!function_exists('hasModule')) {
         
         $modules = [
             'generic' => [
-                // Generic features
+                'meat_deboning',
+                'weight_scale',
+                'expiration_dates',
             ],
             'minimarket' => [
                 'meat_deboning',
