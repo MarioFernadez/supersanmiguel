@@ -25,12 +25,13 @@ class PaymentMethods extends Component
 
     public function render()
     {
-        $methods = PaymentMethod::where('name', 'like', '%' . $this->search . '%')
+        $paymentMethods = PaymentMethod::where('name', 'like', '%' . $this->search . '%')
             ->orderBy('name')
             ->paginate(10);
 
         return view('livewire.settings.payment-methods', [
-            'methods' => $methods
+            'paymentMethods' => $paymentMethods,
+            'methods' => $paymentMethods,
         ])->layout('layouts.app');
     }
 
