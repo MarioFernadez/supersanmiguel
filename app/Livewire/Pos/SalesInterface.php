@@ -278,7 +278,9 @@ class SalesInterface extends Component
     #[Computed]
     public function products()
     {
-        return Product::with(['branchStocks', 'variations.branchStocks'])->where('is_active', true)
+        return Product::with(['branchStocks', 'variations.branchStocks'])
+            ->where('is_active', true)
+            ->where('is_raw_material', false)
             ->where(function($query) {
                 // MySQL uses LIKE for case-insensitive search
                 $query->where('name', 'like', '%' . $this->search . '%')
@@ -344,7 +346,7 @@ class SalesInterface extends Component
             $weightInKg5 = (float)$weightString5 / 1000;
 
             // Try to find product by SKU (4 digits or 5 digits, trimmed or raw)
-            $product = Product::whereIn('sku', [
+            $product = Product::where('is_raw_material', false)->whereIn('sku', [
                 $skuCode4, ltrim($skuCode4, '0'),
                 $skuCode5, ltrim($skuCode5, '0')
             ])->first();
@@ -366,7 +368,7 @@ class SalesInterface extends Component
         }
         
         // If not a scale barcode, or product not found, try to find a direct exact match
-        $productExact = Product::where('sku', $term)->first();
+        $productExact = Product::where('is_raw_material', false)->where('sku', $term)->first();
         if ($productExact) {
             if ($productExact->has_variations) {
                 $this->selectingProduct = $productExact;
@@ -380,7 +382,7 @@ class SalesInterface extends Component
 
     public function addToCart($productId)
     {
-        $product = Product::with('variations')->find($productId);
+        $product = Product::with('variations')->where('is_raw_material', false)->find($productId);
         if (!$product) return;
 
         if ($product->has_variations) {
