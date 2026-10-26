@@ -142,11 +142,18 @@
                                                 @endif
                                                 <div>
                                                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ $product->name }}</div>
-                                                    @if($product->discount_percentage > 0)
-                                                        <span class="inline-flex items-center text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full uppercase tracking-tighter mt-1">
-                                                            {{ $product->discount_percentage }}% OFF
-                                                        </span>
-                                                    @endif
+                                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                                        @if($product->is_raw_material)
+                                                            <span class="inline-flex items-center text-[9px] font-black bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                                                🥩 GLOBAL
+                                                            </span>
+                                                        @endif
+                                                        @if($product->discount_percentage > 0)
+                                                            <span class="inline-flex items-center text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
+                                                                {{ $product->discount_percentage }}% OFF
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
