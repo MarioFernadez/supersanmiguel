@@ -66,13 +66,30 @@ class Form extends Component
     public $availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Unico'];
     public $availableColors = ['Blanco', 'Negro', 'Gris', 'Azul', 'Rojo', 'Verde', 'Amarillo', 'Naranja', 'Rosa', 'Beige', 'Marrón'];
 
-    // Decants
+    // Decants & Carnicería
     public $is_decant = false;
     public $parent_id = null;
     public $fraction_multiplier = 1.000;
+    public $is_raw_material = false;
 
     // Restaurant
     public $production_zone = 'none';
+
+    public function updatedIsRawMaterial($value)
+    {
+        if ($value) {
+            $this->is_decant = false;
+            $this->parent_id = null;
+            $this->unit_type = 'kg';
+        }
+    }
+
+    public function updatedIsDecant($value)
+    {
+        if ($value) {
+            $this->is_raw_material = false;
+        }
+    }
 
     public function mount(Product $product = null)
     {
@@ -94,6 +111,7 @@ class Form extends Component
             $this->discount_percentage = $product->discount_percentage;
             $this->product_image_path = $product->image_path;
             $this->has_variations = $product->has_variations;
+            $this->is_raw_material = (bool)($product->is_raw_material ?? false);
             $this->is_decant = !is_null($product->parent_id);
             $this->parent_id = $product->parent_id;
             $this->fraction_multiplier = $product->fraction_multiplier ?? 1.000;
@@ -124,10 +142,19 @@ class Form extends Component
         $branches = \App\Models\Branch::where('is_active', true)->orderBy('name')->get();
         
         $potentialParents = [];
-        if (hasModule('decants') || hasModule('meat_deboning')) {
+        if (hasModule('meat_deboning')) {
             $potentialParents = Product::where('is_active', true)
-                                       ->whereNull('parent_id') // avoid decant of decant
-                                       ->where('id', '!=', $this->productId) // avoid self
+                                       ->where(function($q) {
+                                           $q->where('is_raw_material', true)
+                                             ->orWhereNull('parent_id');
+                                       })
+                                       ->where('id', '!=', $this->productId)
+                                       ->orderBy('name')
+                                       ->get();
+        } elseif (hasModule('decants')) {
+            $potentialParents = Product::where('is_active', true)
+                                       ->whereNull('parent_id')
+                                       ->where('id', '!=', $this->productId)
                                        ->orderBy('name')
                                        ->get();
         }
@@ -197,6 +224,7 @@ class Form extends Component
             'has_variations' => $this->has_variations,
             'is_active'  => $this->is_active,
             'image_path' => $this->product_image_path,
+            'is_raw_material' => (bool) $this->is_raw_material,
             'parent_id'  => $this->is_decant ? $this->parent_id : null,
             'fraction_multiplier' => $this->is_decant ? (float)$this->fraction_multiplier : 1.000,
             'production_zone' => $this->production_zone,

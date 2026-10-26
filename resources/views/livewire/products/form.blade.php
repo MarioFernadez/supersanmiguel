@@ -144,13 +144,21 @@
                         </div>
                         @endif
                         <!-- Decants / Materia Prima Global (Carnicería) -->
-                        @if(hasModule('decants') || hasModule('meat_deboning'))
+                        @if($is_raw_material)
+                        <div class="mt-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-800/50 flex items-center gap-3">
+                            <span class="text-2xl">🥩</span>
+                            <div>
+                                <h4 class="text-xs font-black text-rose-900 uppercase tracking-wider dark:text-rose-300">Este producto es una Materia Prima Global</h4>
+                                <p class="text-[11px] text-rose-700 dark:text-rose-400 font-medium">Su stock abastece a los cortes derivados (costilla, vacío, chorizo) y se utiliza para liquidar la merma mensual.</p>
+                            </div>
+                        </div>
+                        @elseif(hasModule('decants') || hasModule('meat_deboning'))
                         <div class="mt-8 pt-8 border-t border-gray-100 border-dashed dark:border-gray-700">
                             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                                 <div>
                                     <h4 class="text-sm font-black {{ hasModule('meat_deboning') ? 'text-rose-900 dark:text-rose-400' : 'text-fuchsia-900 dark:text-fuchsia-400' }} uppercase tracking-widest flex items-center gap-2">
                                         @if(hasModule('meat_deboning'))
-                                            🥩 Materia Prima Global (Cortes / Carnicería)
+                                            🥩 ¿Descontar de Producto Global? (Cortes / Chorizo)
                                         @else
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                             Es un Decant (Fracción)
@@ -375,6 +383,36 @@
                             </label>
                         </div>
                     </div>
+
+                    <!-- Carnicería / Producto Global -->
+                    @if(hasModule('meat_deboning'))
+                    <div class="bg-white border {{ $is_raw_material ? 'border-rose-400 bg-rose-50/30' : 'border-gray-100' }} rounded-3xl p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700 transition">
+                        <h2 class="text-sm font-black {{ $is_raw_material ? 'text-rose-900 dark:text-rose-400' : 'text-gray-900 dark:text-white' }} uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <span>🥩</span>
+                            <span>PRODUCTO GLOBAL</span>
+                        </h2>
+                        
+                        <div class="border {{ $is_raw_material ? 'border-rose-200 bg-rose-50 dark:bg-rose-950/40 dark:border-rose-800/50' : 'border-gray-200 bg-gray-50 dark:bg-gray-750 dark:border-gray-700' }} rounded-2xl p-4 transition">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <div class="flex items-center h-5 mt-0.5">
+                                    <input type="checkbox" wire:model.live="is_raw_material" class="w-5 h-5 text-rose-600 bg-white border-gray-300 rounded focus:ring-rose-500">
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-black {{ $is_raw_material ? 'text-rose-900 dark:text-rose-300' : 'text-gray-800 dark:text-gray-200' }}">¿Es Producto Global?</span>
+                                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">
+                                        Carne en bruto / Media Res
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+
+                        @if($is_raw_material)
+                            <div class="mt-3 text-xs font-bold text-rose-700 bg-rose-100/90 p-3 rounded-xl dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200">
+                                ✓ Este producto es la <strong>Carne Global</strong> (Materia Prima). Aquí ingresas el stock total y de aquí se descontarán los cortes automáticamente.
+                            </div>
+                        @endif
+                    </div>
+                    @endif
 
                     <!-- Organización -->
                     <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700 dark:shadow-none">
