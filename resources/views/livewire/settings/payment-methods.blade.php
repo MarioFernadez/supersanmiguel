@@ -31,25 +31,41 @@
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50/80 dark:bg-gray-900/60">
                         <tr>
-                            <th class="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Nombre</th>
+                            <th class="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Método de Pago</th>
                             <th class="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Tipo</th>
                             <th class="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Estado</th>
-                            <th class="px-6 py-3.5 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Acciones</th>
+                            <th class="px-6 py-3.5 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider dark:text-gray-400">Activar / Desactivar</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100 dark:bg-gray-800 dark:divide-gray-700">
                         @forelse($paymentMethods as $pm)
-                            <tr class="hover:bg-gray-50/60 dark:hover:bg-gray-700/40 transition">
-                                <td class="px-6 py-4 whitespace-nowrap text-xs font-semibold text-gray-900 dark:text-white">{{ $pm->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500 capitalize dark:text-gray-400">{{ $pm->type }}</td>
+                            <tr class="hover:bg-gray-50/60 dark:hover:bg-gray-750 transition">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full {{ $pm->is_active ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }}">
-                                        {{ $pm->is_active ? 'Activo' : 'Inactivo' }}
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="text-xl">
+                                            @if($pm->name === 'Efectivo') 💵
+                                            @elseif($pm->name === 'Tarjeta' || $pm->type === 'card') 💳
+                                            @elseif($pm->name === 'Transferencia' || $pm->type === 'transfer') 🏦
+                                            @elseif($pm->name === 'QR' || $pm->type === 'qr') 📱
+                                            @else 🪙
+                                            @endif
+                                        </span>
+                                        <span class="text-sm font-bold text-gray-900 dark:text-white">{{ $pm->name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500 capitalize dark:text-gray-400 font-medium">
+                                    {{ $pm->type }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full {{ $pm->is_active ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 border border-gray-200' }}">
+                                        {{ $pm->is_active ? '● Activo en Caja' : '○ Inactivo' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-xs font-medium space-x-2">
-                                    <button wire:click="edit('{{ $pm->id }}')" class="text-indigo-600 hover:text-indigo-900 font-semibold dark:text-indigo-400">Editar</button>
-                                    <button wire:click="delete('{{ $pm->id }}')" wire:confirm="¿Seguro que deseas eliminar este método?" class="text-rose-600 hover:text-rose-900 font-semibold dark:text-rose-400">Eliminar</button>
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <button type="button" wire:click="toggleStatus('{{ $pm->id }}')" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 {{ $pm->is_active ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700' }}" role="switch" aria-checked="{{ $pm->is_active ? 'true' : 'false' }}" title="{{ $pm->is_active ? 'Click para desactivar de la caja' : 'Click para activar en la caja' }}">
+                                        <span class="sr-only">Cambiar estado</span>
+                                        <span aria-hidden="true" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $pm->is_active ? 'translate-x-5' : 'translate-x-0' }}"></span>
+                                    </button>
                                 </td>
                             </tr>
                         @empty

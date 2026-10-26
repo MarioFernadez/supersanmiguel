@@ -35,6 +35,17 @@ class PaymentMethods extends Component
         ])->layout('layouts.app');
     }
 
+    public function toggleStatus($id)
+    {
+        $method = PaymentMethod::findOrFail($id);
+        $method->is_active = !$method->is_active;
+        $method->save();
+
+        \Illuminate\Support\Facades\Cache::forget('active_payment_methods');
+
+        session()->flash('message', "Método '{$method->name}' " . ($method->is_active ? 'activado' : 'desactivado') . " correctamente.");
+    }
+
     public function create()
     {
         $this->resetForm();
