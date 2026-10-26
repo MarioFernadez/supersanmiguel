@@ -932,21 +932,55 @@
                             <div class="mb-4">
                                 <label class="block text-xs font-medium text-gray-600 mb-2 dark:text-gray-300">Método de Pago</label>
                                 <div class="grid grid-cols-3 gap-1.5">
-                                    <button type="button" wire:click="$set('paymentMethod', 'efectivo')" class="flex items-center justify-center px-2 py-2.5 border rounded-xl text-xs font-medium transition-all {{ $paymentMethod === 'efectivo' ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300' }}">
-                                        💵 Efectivo
-                                    </button>
-                                    
                                     @foreach($paymentMethods as $pm)
-                                        <button type="button" wire:click="$set('paymentMethod', '{{ $pm->name }}')" class="flex items-center justify-center px-2 py-2.5 border rounded-xl text-xs font-medium transition-all {{ $paymentMethod === $pm->name ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300' }}">
-                                            {{ $pm->type === 'card' ? '💳' : ($pm->type === 'qr' ? '📱' : '🏦') }} {{ $pm->name }}
+                                        @php
+                                            $isCash = ($pm->type === 'cash' || strtolower($pm->name) === 'efectivo');
+                                            $methodVal = $isCash ? 'efectivo' : strtolower($pm->name);
+                                            $isSelected = (strtolower($paymentMethod) === strtolower($methodVal) || ($isCash && strtolower($paymentMethod) === 'efectivo'));
+                                        @endphp
+                                        <button type="button" wire:click="$set('paymentMethod', '{{ $methodVal }}')" class="flex items-center justify-center gap-1.5 px-2 py-2.5 border rounded-xl text-xs font-semibold tracking-wide transition-all {{ $isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300' }}">
+                                            @if($isCash)
+                                                <svg class="w-4 h-4 shrink-0 {{ $isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <rect x="2" y="6" width="20" height="12" rx="2" stroke-width="1.8"/>
+                                                    <circle cx="12" cy="12" r="2.5" stroke-width="1.8"/>
+                                                    <path stroke-linecap="round" stroke-width="1.8" d="M6 10h.01M18 14h.01"/>
+                                                </svg>
+                                            @elseif($pm->type === 'card' || strtolower($pm->name) === 'tarjeta')
+                                                <svg class="w-4 h-4 shrink-0 {{ $isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <rect x="2" y="5" width="20" height="14" rx="2" stroke-width="1.8"/>
+                                                    <line x1="2" y1="10" x2="22" y2="10" stroke-width="1.8"/>
+                                                    <path stroke-linecap="round" stroke-width="1.8" d="M6 15h4"/>
+                                                </svg>
+                                            @elseif($pm->type === 'qr' || strtolower($pm->name) === 'qr')
+                                                <svg class="w-4 h-4 shrink-0 {{ $isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                                </svg>
+                                            @elseif($pm->type === 'transfer' || strtolower($pm->name) === 'transferencia')
+                                                <svg class="w-4 h-4 shrink-0 {{ $isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M3 14h18M5 10v6m4-6v6m6-6v6m4-6v6M3 18h18M4 10l8-6 8 6"/>
+                                                </svg>
+                                            @else
+                                                <svg class="w-4 h-4 shrink-0 {{ $isSelected ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="9" stroke-width="1.8"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v8m-3-5h6"/>
+                                                </svg>
+                                            @endif
+                                            <span>{{ $pm->name }}</span>
                                         </button>
                                     @endforeach
 
-                                    <button type="button" wire:click="$set('paymentMethod', 'cheque')" class="flex items-center justify-center px-2 py-2.5 border rounded-xl text-xs font-medium transition-all {{ $paymentMethod === 'cheque' ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300' }}">
-                                        🎫 Cheque
+                                    <button type="button" wire:click="$set('paymentMethod', 'cheque')" class="flex items-center justify-center gap-1.5 px-2 py-2.5 border rounded-xl text-xs font-semibold tracking-wide transition-all {{ strtolower($paymentMethod) === 'cheque' ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300' }}">
+                                        <svg class="w-4 h-4 shrink-0 {{ strtolower($paymentMethod) === 'cheque' ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <rect x="3" y="6" width="18" height="12" rx="2" stroke-width="1.8"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 12h5m-5 3h2m4-3l2 2 4-4"/>
+                                        </svg>
+                                        <span>Cheque</span>
                                     </button>
-                                    <button type="button" wire:click="$set('paymentMethod', 'multiple')" class="flex items-center justify-center px-2 py-2.5 border rounded-xl text-xs font-medium transition-all {{ $paymentMethod === 'multiple' ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300' }}">
-                                        🔀 Múltiple
+                                    <button type="button" wire:click="$set('paymentMethod', 'multiple')" class="flex items-center justify-center gap-1.5 px-2 py-2.5 border rounded-xl text-xs font-semibold tracking-wide transition-all {{ strtolower($paymentMethod) === 'multiple' ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300' }}">
+                                        <svg class="w-4 h-4 shrink-0 {{ strtolower($paymentMethod) === 'multiple' ? 'text-white' : 'text-gray-500 dark:text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                        </svg>
+                                        <span>Múltiple</span>
                                     </button>
                                 </div>
                             </div>
@@ -972,18 +1006,18 @@
                             @elseif($paymentMethod === 'cheque')
                                 <div class="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 space-y-2.5 dark:bg-gray-900/60 dark:border-gray-700">
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Banco 🏦</label>
+                                        <label class="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Banco</label>
                                         <input type="text" wire:model="chequeDetails.bank_name" class="border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block w-full text-xs rounded-xl py-2 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300" placeholder="Nombre del Banco">
                                         @error('chequeDetails.bank_name') <span class="text-rose-500 text-xs">{{ $message }}</span> @enderror
                                     </div>
                                     <div class="grid grid-cols-2 gap-2">
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Nro. Cheque 🔢</label>
+                                            <label class="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Nro. Cheque</label>
                                             <input type="text" wire:model="chequeDetails.cheque_number" class="border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block w-full text-xs rounded-xl py-2 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300" placeholder="00000000">
                                             @error('chequeDetails.cheque_number') <span class="text-rose-500 text-xs">{{ $message }}</span> @enderror
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Fecha Cobro 📅</label>
+                                            <label class="block text-xs font-medium text-gray-500 mb-1 dark:text-gray-400">Fecha de Cobro</label>
                                             <input type="date" wire:model="chequeDetails.due_date" class="border-gray-200 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block w-full text-xs rounded-xl py-2 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300">
                                             @error('chequeDetails.due_date') <span class="text-rose-500 text-xs">{{ $message }}</span> @enderror
                                         </div>
@@ -1001,19 +1035,19 @@
                                             @if(isset($rates['usd']) && $rates['usd'] > 0)
                                                 <button type="button" wire:click="toggleCurrency('usd')" 
                                                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-all active:scale-95 {{ in_array('usd', $activeCurrencies) ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300' }}">
-                                                    💵 USD ($)
+                                                    USD ($)
                                                 </button>
                                             @endif
                                             @if(isset($rates['brl']) && $rates['brl'] > 0)
                                                 <button type="button" wire:click="toggleCurrency('brl')" 
                                                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-all active:scale-95 {{ in_array('brl', $activeCurrencies) ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300' }}">
-                                                    💵 BRL (R$)
+                                                    BRL (R$)
                                                 </button>
                                             @endif
                                             @if(isset($rates['ars']) && $rates['ars'] > 0)
                                                 <button type="button" wire:click="toggleCurrency('ars')" 
                                                     class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border transition-all active:scale-95 {{ in_array('ars', $activeCurrencies) ? 'bg-rose-600 border-rose-600 text-white shadow-sm' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300' }}">
-                                                    💵 ARS (A$)
+                                                    ARS (A$)
                                                 </button>
                                             @endif
                                         </div>
@@ -1056,10 +1090,12 @@
                                         @endif
 
                                         @foreach($paymentMethods as $pm)
-                                            <div>
-                                                <label class="block text-[11px] font-medium text-gray-500 mb-0.5 dark:text-gray-400">{{ $pm->name }} {{ $pm->type === 'card' ? '💳' : ($pm->type === 'qr' ? '📱' : '🏦') }}</label>
-                                                <input type="number" wire:model.live.debounce.300ms="multiplePayments.{{ $pm->name }}" class="focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block w-full text-xs border-gray-200 rounded-xl py-1.5 text-right dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 font-bold tabular-nums" placeholder="0">
-                                            </div>
+                                            @if($pm->type !== 'cash' && strtolower($pm->name) !== 'efectivo')
+                                                <div>
+                                                    <label class="block text-[11px] font-medium text-gray-500 mb-0.5 dark:text-gray-400">{{ $pm->name }}</label>
+                                                    <input type="number" wire:model.live.debounce.300ms="multiplePayments.{{ $pm->name }}" class="focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 block w-full text-xs border-gray-200 rounded-xl py-1.5 text-right dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 font-bold tabular-nums" placeholder="0">
+                                                </div>
+                                            @endif
                                         @endforeach
                                     </div>
 

@@ -910,7 +910,12 @@ class SalesInterface extends Component
             return redirect()->route('cash.index')->with('message', 'Debes abrir caja para poder vender.');
         }
 
-        $this->paymentMethod = 'efectivo';
+        $this->loadPaymentMethods();
+
+        $hasEfectivo = collect($this->paymentMethods)->contains(function ($pm) {
+            return strtolower($pm->name) === 'efectivo' || $pm->type === 'cash';
+        });
+        $this->paymentMethod = $hasEfectivo ? 'efectivo' : (collect($this->paymentMethods)->first()?->name ? strtolower(collect($this->paymentMethods)->first()->name) : 'efectivo');
         $this->paymentCondition = 'contado';
         $this->receivedAmount = ''; // Start empty so user can type
         $this->change = -$this->total; // Initial change is effectively negative whole amount

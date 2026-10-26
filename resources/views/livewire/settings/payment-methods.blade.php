@@ -50,20 +50,50 @@
                             <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-750 transition-colors">
                                 <!-- Nombre y Detalle -->
                                 <td class="px-6 py-4.5 whitespace-nowrap">
-                                    <div>
-                                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ $pm->name }}</div>
-                                        <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-700/60 border border-gray-200/60 dark:border-gray-600 flex items-center justify-center text-gray-500 dark:text-gray-400 shrink-0">
                                             @if($pm->type === 'cash' || strtolower($pm->name) === 'efectivo')
-                                                Cobro con papel moneda y billetes en caja
-                                            @elseif($pm->type === 'qr' || strtolower($pm->name) === 'qr')
-                                                Billetera digital y lectura de código QR
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <rect x="2" y="6" width="20" height="12" rx="2" stroke-width="1.8"/>
+                                                    <circle cx="12" cy="12" r="2.5" stroke-width="1.8"/>
+                                                    <path stroke-linecap="round" stroke-width="1.8" d="M6 10h.01M18 14h.01"/>
+                                                </svg>
                                             @elseif($pm->type === 'card' || strtolower($pm->name) === 'tarjeta')
-                                                Terminal bancaria POS (Débito y Crédito)
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <rect x="2" y="5" width="20" height="14" rx="2" stroke-width="1.8"/>
+                                                    <line x1="2" y1="10" x2="22" y2="10" stroke-width="1.8"/>
+                                                    <path stroke-linecap="round" stroke-width="1.8" d="M6 15h4"/>
+                                                </svg>
+                                            @elseif($pm->type === 'qr' || strtolower($pm->name) === 'qr')
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                                </svg>
                                             @elseif($pm->type === 'transfer' || strtolower($pm->name) === 'transferencia')
-                                                Depósito o transferencia bancaria directa
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M3 14h18M5 10v6m4-6v6m6-6v6m4-6v6M3 18h18M4 10l8-6 8 6"/>
+                                                </svg>
                                             @else
-                                                Canal de cobro registrado
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="9" stroke-width="1.8"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v8m-3-5h6"/>
+                                                </svg>
                                             @endif
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ $pm->name }}</div>
+                                            <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                                                @if($pm->type === 'cash' || strtolower($pm->name) === 'efectivo')
+                                                    Cobro con papel moneda y billetes en caja
+                                                @elseif($pm->type === 'qr' || strtolower($pm->name) === 'qr')
+                                                    Billetera digital y lectura de código QR
+                                                @elseif($pm->type === 'card' || strtolower($pm->name) === 'tarjeta')
+                                                    Terminal bancaria POS (Débito y Crédito)
+                                                @elseif($pm->type === 'transfer' || strtolower($pm->name) === 'transferencia')
+                                                    Depósito o transferencia bancaria directa
+                                                @else
+                                                    Canal de cobro registrado
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
