@@ -1,16 +1,10 @@
 <div>
     <x-page-header title="Taller de Desposte" section="Tienda › Carnicería" :badge="$sessions->total() . ' sesiones'">
         <x-slot name="actions">
-            <div class="flex items-center gap-2">
-                <button wire:click="openClosureModal" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-                    <span>🥩</span>
-                    <span>Cierre / Merma Mensual</span>
-                </button>
-                <a href="{{ route('admin.deboning.create') }}" wire:navigate class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition shadow-sm flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    Registrar Desposte
-                </a>
-            </div>
+            <button wire:click="openClosureModal" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition shadow-sm flex items-center gap-2">
+                <span class="text-base">🥩</span>
+                <span class="font-black uppercase tracking-wider">Cierre / Merma Mensual</span>
+            </button>
         </x-slot>
     </x-page-header>
 
