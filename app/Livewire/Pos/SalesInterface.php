@@ -341,23 +341,17 @@ class SalesInterface extends Component
             return;
         }
 
-        // 1. EAN-13 Scale Barcode Logic
-        // In-store scale barcodes typically start with prefixes 20 through 29.
+        // 1. EAN-13 Scale Barcode Logic (prefixes 20 through 29)
         if (strlen($term) === 13 && preg_match('/^2[0-9]/', $term)) {
-            // Format A: Prefix (2 digits) + SKU (4 digits) + Weight in grams (5 digits) + Check (1 digit)
-            // e.g. 20 0123 01500 4 -> SKU: 123, Weight: 1.500 Kg
             $skuCode4 = substr($term, 2, 4);
             $weightString4 = substr($term, 6, 5);
             $weightInKg4 = (float)$weightString4 / 1000;
 
-            // Format B: Prefix (2 digits) + SKU (5 digits) + Weight in grams (5 digits) + Check (1 digit)
-            // e.g. 20 00123 01500 4 -> SKU: 123, Weight: 1.500 Kg
             $skuCode5 = substr($term, 2, 5);
             $weightString5 = substr($term, 7, 5);
             $weightInKg5 = (float)$weightString5 / 1000;
 
-            // Try to find product by SKU (4 digits or 5 digits, trimmed or raw)
-            $product = Product::where('is_raw_material', false)->whereIn('sku', [
+            $product = Product::where('is_active', true)->whereIn('sku', [
                 $skuCode4, ltrim($skuCode4, '0'),
                 $skuCode5, ltrim($skuCode5, '0')
             ])->first();
@@ -374,16 +368,19 @@ class SalesInterface extends Component
                     $this->addToCartInternal($product, null, $weightInKg);
                 }
                 $this->dispatch('product-scanned');
+                $this->dispatch('beep-success');
                 return;
             }
         }
         
-        // 2. Direct exact match in Product by SKU (or with leading zeros stripped)
+        // 2. Direct exact match in Product by SKU
         $cleanTermNoZeros = ltrim($term, '0');
         $skusToSearch = array_unique(array_filter([$term, $cleanTermNoZeros]));
 
-        $productExact = Product::where('is_raw_material', false)
+        // Search active products (regular first, then any active)
+        $productExact = Product::where('is_active', true)
             ->whereIn('sku', $skusToSearch)
+            ->orderBy('is_raw_material', 'asc')
             ->first();
 
         if ($productExact) {
@@ -394,23 +391,25 @@ class SalesInterface extends Component
                 $this->addToCartInternal($productExact);
             }
             $this->dispatch('product-scanned');
+            $this->dispatch('beep-success');
             return;
         }
 
-        // 3. Match in ProductVariation by SKU (barcode specific to a variation)
+        // 3. Match in ProductVariation by SKU
         $variationExact = \App\Models\ProductVariation::with('product')
             ->whereIn('sku', $skusToSearch)
+            ->where('is_active', true)
             ->first();
 
-        if ($variationExact && $variationExact->product && !$variationExact->product->is_raw_material) {
+        if ($variationExact && $variationExact->product && $variationExact->product->is_active) {
             $this->addToCartInternal($variationExact->product, $variationExact);
             $this->dispatch('product-scanned');
+            $this->dispatch('beep-success');
             return;
         }
 
-        // 4. Fallback search: If there's an exact match in name or only 1 product matches
+        // 4. Fallback search: exact match in name or single product match
         $matchingProducts = Product::where('is_active', true)
-            ->where('is_raw_material', false)
             ->where(function($query) use ($skusToSearch, $term) {
                 $query->whereIn('sku', $skusToSearch)
                       ->orWhere('name', $term);
@@ -426,11 +425,13 @@ class SalesInterface extends Component
                 $this->addToCartInternal($singleProduct);
             }
             $this->dispatch('product-scanned');
+            $this->dispatch('beep-success');
             return;
         }
 
-        // 5. If not found, dispatch notification so cashier gets immediate feedback
+        // 5. If not found, dispatch notification and error beep
         $this->dispatch('error-movement', "Producto con código '{$term}' no encontrado.");
+        $this->dispatch('beep-error');
         $this->dispatch('product-scanned');
     }
 
@@ -480,6 +481,7 @@ class SalesInterface extends Component
             $currentQty = isset($this->cart[$cartKey]) ? $this->cart[$cartKey]['quantity'] : 0;
             if ($stock < ($currentQty + $quantity)) {
                 $this->dispatch('error-movement', 'Stock insuficiente. Disponible: ' . $stock);
+                $this->dispatch('beep-error');
                 return;
             }
         } elseif ($product->parent_id) {
@@ -495,6 +497,7 @@ class SalesInterface extends Component
                 if ($parentStock < $quantityToDeduct) {
                     $unit = $parentProduct->unit_type ?: 'Kg';
                     $this->dispatch('error-movement', "Stock insuficiente en {$parentProduct->name}. Disponible: " . number_format($parentStock, 2) . " {$unit}");
+                    $this->dispatch('beep-error');
                     return;
                 }
             }
@@ -522,6 +525,7 @@ class SalesInterface extends Component
         }
         
         $this->calculateTotal();
+        $this->dispatch('beep-success');
     }
 
     public function updateQuantity($cartKey, $change)

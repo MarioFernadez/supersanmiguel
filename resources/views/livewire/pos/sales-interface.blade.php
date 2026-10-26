@@ -138,17 +138,50 @@
             </div>
             
             <div class="flex gap-2">
-                <div class="relative flex-1">
-                    <input id="product-search-input" 
-                        wire:model.live.debounce.250ms="search" 
-                        type="text" 
-                        x-on:keydown.enter.prevent="
-                            let code = $el.value.trim();
+                <div class="relative flex-1" x-data="{
+                    lastCharTime: 0,
+                    scanTimer: null,
+                    submitScan(code) {
+                        code = (code || '').trim();
+                        if (!code) return;
+                        clearTimeout(this.scanTimer);
+                        const input = $el.querySelector('input');
+                        if (input) input.value = '';
+                        $wire.handleSearchSubmit(code);
+                    },
+                    handleKey(e) {
+                        // Si la pistola envía Enter o Tab
+                        if (e.key === 'Enter' || e.key === 'Tab') {
+                            e.preventDefault();
+                            clearTimeout(this.scanTimer);
+                            let code = e.target.value.trim();
                             if (code) {
-                                $el.value = '';
-                                $wire.handleSearchSubmit(code);
+                                this.submitScan(code);
                             }
-                        "
+                            return;
+                        }
+
+                        // Detección de ráfaga para pistolas que NO envían Enter
+                        const now = Date.now();
+                        const diff = now - this.lastCharTime;
+                        this.lastCharTime = now;
+
+                        clearTimeout(this.scanTimer);
+                        // Si los caracteres entraron a velocidad de lectora (< 65ms por tecla)
+                        if (diff < 65) {
+                            this.scanTimer = setTimeout(() => {
+                                let code = e.target.value.trim();
+                                if (code.length >= 3) {
+                                    this.submitScan(code);
+                                }
+                            }, 70);
+                        }
+                    }
+                }">
+                    <input id="product-search-input" 
+                        wire:model.live.debounce.300ms="search" 
+                        type="text" 
+                        x-on:keydown="handleKey($event)"
                         class="w-full pl-10 pr-12 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm" 
                         placeholder="Buscar producto por nombre o código (SKU)..." 
                         autocomplete="off"
@@ -1587,18 +1620,72 @@
             window.open(url, '_blank');
         });
 
-        // Asegurar que el input de búsqueda se limpie y mantenga el foco después de procesar
+        // 1. Sintetizador de sonido Beep nativo (como caja de supermercado)
+        function playPosTone(type) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'success') {
+                    // Beep agudo corto y agradable (1400Hz, 70ms)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1400, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.07);
+                } else {
+                    // Tono grave de error (300Hz, 180ms)
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.18);
+                }
+            } catch(err) {}
+        }
+
+        Livewire.on('beep-success', () => playPosTone('success'));
+        Livewire.on('beep-error', () => playPosTone('error'));
+
+        // 2. Función para mantener el foco en el buscador de productos
+        function keepSearchFocused() {
+            // No robar foco si hay modales visibles abiertos
+            const activeModal = document.querySelector('.fixed.z-50:not([style*="display: none"]):not([style*="display:none"])');
+            if (activeModal) return;
+
+            const searchInput = document.getElementById('product-search-input');
+            if (searchInput && document.activeElement !== searchInput) {
+                searchInput.focus();
+            }
+        }
+
+        setTimeout(keepSearchFocused, 150);
+
         Livewire.on('product-scanned', () => {
             const searchInput = document.getElementById('product-search-input');
             if (searchInput) {
                 searchInput.value = '';
-                searchInput.focus();
+            }
+            setTimeout(keepSearchFocused, 40);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('input, textarea, select, button, a, [role="button"], .no-refocus')) {
+                setTimeout(keepSearchFocused, 30);
             }
         });
 
-        // Buffer y temporizador para pistola de código de barras global
+        // 3. Buffer y temporizador para pistola de código de barras global
         let barcodeBuffer = '';
         let lastKeyTime = Date.now();
+        let globalScanTimer = null;
 
         window.addEventListener('keydown', (e) => {
             const activeEl = document.activeElement;
@@ -1609,14 +1696,12 @@
                 activeEl.isContentEditable
             );
 
-            // POS Keyboard Hotkeys
+            // Teclas de función POS (F2, F3, F4, F8)
             if (e.key === 'F2') {
                 e.preventDefault();
                 @this.call('openPaymentModal');
                 return;
-            }
-            // F3: Buscar Producto
-            else if (e.key === 'F3') {
+            } else if (e.key === 'F3') {
                 e.preventDefault();
                 const searchInput = document.getElementById('product-search-input');
                 if (searchInput) {
@@ -1624,50 +1709,60 @@
                     searchInput.select();
                 }
                 return;
-            }
-            // F4: Cliente
-            else if (e.key === 'F4') {
+            } else if (e.key === 'F4') {
                 e.preventDefault();
                 @this.call('openCustomerModal');
                 return;
-            }
-            // F8: Mesas
-            else if (e.key === 'F8') {
+            } else if (e.key === 'F8') {
                 e.preventDefault();
                 @this.set('showTableMap', true);
                 return;
             }
 
-            // Si el cajero está escribiendo en otro input editable (ej: cliente, monto a cobrar), no interceptar
+            // Si el cajero está en otro input (ej: cliente, cobrar en efectivo), no interceptar
             if (isOtherInput) {
                 return;
             }
 
-            const currentTime = Date.now();
-            const timeDiff = currentTime - lastKeyTime;
-            lastKeyTime = currentTime;
+            const now = Date.now();
+            const timeDiff = now - lastKeyTime;
+            lastKeyTime = now;
 
-            // Las lectoras emulan teclado muy rápido (< 60ms entre teclas)
-            if (timeDiff > 60) {
-                barcodeBuffer = '';
-            }
-
-            if (e.key === 'Enter') {
-                // Si se detectó una ráfaga de escaneo y el cursor no estaba en el input de búsqueda
+            // Si la pistola envía Enter o Tab
+            if (e.key === 'Enter' || e.key === 'Tab') {
                 if (barcodeBuffer.length >= 3 && !isSearchInput) {
                     e.preventDefault();
+                    clearTimeout(globalScanTimer);
                     const code = barcodeBuffer.trim();
                     barcodeBuffer = '';
                     const searchInput = document.getElementById('product-search-input');
-                    if (searchInput) {
-                        searchInput.value = '';
-                        searchInput.focus();
-                    }
+                    if (searchInput) searchInput.value = '';
                     @this.call('handleSearchSubmit', code);
+                    return;
                 }
                 barcodeBuffer = '';
-            } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                return;
+            }
+
+            // Si pasaron más de 70ms entre teclas, es escritura manual humana, resetear buffer
+            if (timeDiff > 70) {
+                barcodeBuffer = '';
+            }
+
+            if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
                 barcodeBuffer += e.key;
+
+                // Auto-procesamiento si la pistola NO envía Enter ni Tab
+                clearTimeout(globalScanTimer);
+                globalScanTimer = setTimeout(() => {
+                    if (barcodeBuffer.length >= 4 && !isSearchInput) {
+                        const code = barcodeBuffer.trim();
+                        barcodeBuffer = '';
+                        const searchInput = document.getElementById('product-search-input');
+                        if (searchInput) searchInput.value = '';
+                        @this.call('handleSearchSubmit', code);
+                    }
+                }, 75);
             }
         });
     });
