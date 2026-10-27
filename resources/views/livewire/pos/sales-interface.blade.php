@@ -150,7 +150,7 @@
                     }
                 }">
                     <input id="product-search-input" 
-                        wire:model.live.debounce.300ms="search" 
+                        wire:model="search" 
                         type="text" 
                         x-on:keydown.enter.prevent="submitCode($el.value)"
                         x-on:keydown.tab.prevent="submitCode($el.value)"
@@ -163,14 +163,19 @@
                                 }, 100);
                             }
                         "
-                        class="w-full pl-10 pr-12 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm" 
+                        class="w-full pl-10 pr-16 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm" 
                         placeholder="Buscar producto por nombre o código (SKU)..." 
                         autocomplete="off"
                         autofocus>
                     <div class="absolute left-3.5 top-3 text-gray-400 dark:text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
-                    <div class="absolute right-3 top-2.5">
+                    <div class="absolute right-3 top-2.5 flex items-center gap-1.5">
+                        @if(!empty($search))
+                            <button type="button" wire:click="clearSearch" class="text-xs text-rose-500 hover:text-rose-700 p-0.5 transition-colors" title="Limpiar filtro">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        @endif
                         <span class="text-[10px] font-semibold text-gray-400 border border-gray-200 dark:border-gray-600 rounded px-1.5 py-0.5 bg-gray-50 dark:bg-gray-800 dark:text-gray-400">F3</span>
                     </div>
                 </div>

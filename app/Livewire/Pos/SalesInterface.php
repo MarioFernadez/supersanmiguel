@@ -278,13 +278,17 @@ class SalesInterface extends Component
     #[Computed]
     public function products()
     {
+        $searchTerm = trim((string)$this->search);
+
         return Product::with(['branchStocks', 'variations.branchStocks'])
             ->where('is_active', true)
             ->where('is_raw_material', false)
-            ->where(function($query) {
-                // MySQL uses LIKE for case-insensitive search
-                $query->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('sku', 'like', '%' . $this->search . '%');
+            ->when($searchTerm !== '', function($query) use ($searchTerm) {
+                $query->where(function($q) use ($searchTerm) {
+                    $q->where('sku', $searchTerm)
+                      ->orWhere('sku', 'like', $searchTerm . '%')
+                      ->orWhere('name', 'like', '%' . $searchTerm . '%');
+                });
             })
             ->when($this->selectedCategory, function($query) {
                 $query->where('category_id', $this->selectedCategory);
@@ -302,21 +306,34 @@ class SalesInterface extends Component
             return Category::where('is_active', true)->get();
         });
 
-        $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)->orderBy('name')->get();
+        $paymentMethods = \Illuminate\Support\Facades\Cache::remember('pos_active_payment_methods', 3600, function () {
+            return \App\Models\PaymentMethod::where('is_active', true)->orderBy('name')->get();
+        });
         $this->paymentMethods = $paymentMethods;
+
+        $movementTypeKey = $this->movementType == 'in' ? 'income' : 'expense';
+        $movementCategories = \Illuminate\Support\Facades\Cache::remember('pos_movement_cats_' . $movementTypeKey, 3600, function () use ($movementTypeKey) {
+            return \App\Models\CashMovementCategory::where('is_active', true)
+                ->where(function($q) use ($movementTypeKey) {
+                    $q->where('type', $movementTypeKey)
+                      ->orWhere('type', 'both');
+                })
+                ->get();
+        });
+
+        $pendingWebOrdersCount = \Illuminate\Support\Facades\Cache::remember('pos_pending_web_orders_count', 30, function () {
+            return \App\Services\LicenseService::isEcommerceEnabled()
+                ? \App\Models\WebOrder::whereIn('status', ['Pendiente WhatsApp', 'Atendido'])->count()
+                : 0;
+        });
 
         return view('livewire.pos.sales-interface', [
             'products'             => $this->products,
             'categories'           => $categories,
             'branchId'             => $branchId,
             'paymentMethods'       => $paymentMethods,
-            'movementCategories'   => \App\Models\CashMovementCategory::where('is_active', true)
-                ->where(function($q) {
-                    $q->where('type', $this->movementType == 'in' ? 'income' : 'expense')
-                      ->orWhere('type', 'both');
-                })
-                ->get(),
-            'pendingWebOrdersCount' => \App\Models\WebOrder::whereIn('status', ['Pendiente WhatsApp', 'Atendido'])->count(),
+            'movementCategories'   => $movementCategories,
+            'pendingWebOrdersCount' => $pendingWebOrdersCount,
             // Restaurant
             'restaurantTables'      => $this->isRestaurantMode ? \App\Models\RestaurantTable::with('currentSale')->get() : collect(),
             'waiters'               => $this->isRestaurantMode ? \App\Models\Waiter::where('active', true)->get() : collect(),
@@ -327,6 +344,13 @@ class SalesInterface extends Component
     public function filterCategory($categoryId)
     {
         $this->selectedCategory = $categoryId === $this->selectedCategory ? null : $categoryId;
+        $this->search = '';
+    }
+
+    public function clearSearch()
+    {
+        $this->search = '';
+        $this->dispatch('product-scanned');
     }
 
     public function updatedSearch($value)
@@ -342,17 +366,26 @@ class SalesInterface extends Component
     public function handleSearchSubmit($scannedTerm = null)
     {
         $term = trim($scannedTerm !== null ? (string)$scannedTerm : (string)$this->search);
-        $this->search = '';
 
         if (empty($term)) {
+            $this->search = '';
             $this->dispatch('product-scanned');
             return;
         }
 
         $added = $this->tryAutoAddBarcode($term, true);
-        if (!$added) {
-            $this->dispatch('error-movement', "Producto con código '{$term}' no encontrado.");
-            $this->dispatch('beep-error');
+        if ($added) {
+            $this->search = '';
+        } else {
+            // Si el código no existe y tiene formato de código de barras numérico (>=5 dígitos), avisar error al cajero
+            if (is_numeric($term) && strlen($term) >= 5) {
+                $this->search = '';
+                $this->dispatch('error-movement', "Producto con código '{$term}' no encontrado.");
+                $this->dispatch('beep-error');
+            } else {
+                // Si el usuario escribió un texto para buscar por nombre (ej: 'coca', 'arroz'), filtrar la grilla
+                $this->search = $term;
+            }
             $this->dispatch('product-scanned');
         }
     }
@@ -395,18 +428,25 @@ class SalesInterface extends Component
             }
         }
 
-        // 2. Coincidencia directa por SKU (exacto, sin ceros o con TRIM)
+        // 2. Coincidencia directa por SKU (índice B-Tree rápido en MySQL)
         $cleanTermNoZeros = ltrim($term, '0');
         $skusToSearch = array_unique(array_filter([$term, $cleanTermNoZeros]));
 
         $productExact = Product::where('is_active', true)
-            ->where(function($q) use ($skusToSearch, $term, $cleanTermNoZeros) {
-                $q->whereIn('sku', $skusToSearch)
-                  ->orWhereRaw('TRIM(sku) = ?', [$term])
-                  ->orWhereRaw('TRIM(sku) = ?', [$cleanTermNoZeros]);
-            })
+            ->whereIn('sku', $skusToSearch)
             ->orderBy('is_raw_material', 'asc')
             ->first();
+
+        // Fallback tolerante si en la BD se guardó con espacios accidentales:
+        if (!$productExact) {
+            $productExact = Product::where('is_active', true)
+                ->where(function($q) use ($term, $cleanTermNoZeros) {
+                    $q->whereRaw('TRIM(sku) = ?', [$term])
+                      ->orWhereRaw('TRIM(sku) = ?', [$cleanTermNoZeros]);
+                })
+                ->orderBy('is_raw_material', 'asc')
+                ->first();
+        }
 
         if ($productExact) {
             if ($productExact->has_variations) {
@@ -421,15 +461,21 @@ class SalesInterface extends Component
             return true;
         }
 
-        // 3. Match in ProductVariation by SKU
+        // 3. Match in ProductVariation by SKU (índice rápido)
         $variationExact = \App\Models\ProductVariation::with('product')
             ->where('is_active', true)
-            ->where(function($q) use ($skusToSearch, $term, $cleanTermNoZeros) {
-                $q->whereIn('sku', $skusToSearch)
-                  ->orWhereRaw('TRIM(sku) = ?', [$term])
-                  ->orWhereRaw('TRIM(sku) = ?', [$cleanTermNoZeros]);
-            })
+            ->whereIn('sku', $skusToSearch)
             ->first();
+
+        if (!$variationExact) {
+            $variationExact = \App\Models\ProductVariation::with('product')
+                ->where('is_active', true)
+                ->where(function($q) use ($term, $cleanTermNoZeros) {
+                    $q->whereRaw('TRIM(sku) = ?', [$term])
+                      ->orWhereRaw('TRIM(sku) = ?', [$cleanTermNoZeros]);
+                })
+                ->first();
+        }
 
         if ($variationExact && $variationExact->product && $variationExact->product->is_active) {
             $this->addToCartInternal($variationExact->product, $variationExact);
