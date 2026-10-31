@@ -13,7 +13,6 @@ class Sales extends Component
 
     public $dateFrom;
     public $dateTo;
-    public $channel = 'all'; // all, pos, web
 
     // Detail View
     public $showingSaleDetails = false;
@@ -40,7 +39,6 @@ class Sales extends Component
 
     public function updatedDateFrom() { $this->updateCharts(); }
     public function updatedDateTo() { $this->updateCharts(); }
-    public function updatedChannel() { $this->updateCharts(); }
 
     public function updateCharts()
     {
@@ -200,25 +198,11 @@ class Sales extends Component
         $sales = Sale::with(['user', 'customer', 'seller'])
             ->whereDate('created_at', '>=', $this->dateFrom)
             ->whereDate('created_at', '<=', $this->dateTo)
-            ->when($this->channel !== 'all', function($q) {
-                if ($this->channel === 'web') {
-                    return $q->whereNotNull('web_order_id');
-                } else {
-                    return $q->whereNull('web_order_id');
-                }
-            })
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
         $totalPeriod = Sale::whereDate('created_at', '>=', $this->dateFrom)
             ->whereDate('created_at', '<=', $this->dateTo)
-            ->when($this->channel !== 'all', function($q) {
-                if ($this->channel === 'web') {
-                    return $q->whereNotNull('web_order_id');
-                } else {
-                    return $q->whereNull('web_order_id');
-                }
-            })
             ->where('status', '!=', 'voided')
             ->sum('total');
 

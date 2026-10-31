@@ -42,11 +42,6 @@
                 </svg>
                 <span>Volver a Iniciar Sesión</span>
             </a>
-
-            <a href="{{ route('shop.index') }}"
-               class="w-full inline-flex items-center justify-center py-2.5 px-4 text-xs font-semibold text-slate-400 hover:text-slate-200 transition">
-                Ir a la Tienda Pública
-            </a>
         </div>
 
         {{-- Footer Brand --}}

@@ -23,7 +23,6 @@ class Sale extends Model
         'tax_exempt',
         'status',
         'payment_condition',
-        'web_order_id',
         'branch_id',
         'restaurant_table_id',
         'waiter_id',
@@ -84,11 +83,6 @@ class Sale extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
-    }
-
-    public function webOrder()
-    {
-        return $this->belongsTo(WebOrder::class);
     }
 
     /**

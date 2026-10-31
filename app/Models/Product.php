@@ -37,12 +37,14 @@ class Product extends Model
         'production_zone',
         'product_type',
         'is_raw_material',
+        'tax_rate',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'manage_stock' => 'boolean',
         'is_raw_material' => 'boolean',
+        'tax_rate' => 'integer',
         'stock' => 'float',
         'min_stock' => 'float',
         'price_cost' => 'integer',

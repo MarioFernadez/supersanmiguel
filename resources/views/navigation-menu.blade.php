@@ -19,7 +19,6 @@
                     $sectionMap = [
                         'dashboard'              => ['Inicio', 'Dashboard'],
                         'pos.'                   => ['Vender', 'Caja POS'],
-                        'admin.web-orders.'      => ['Vender', 'Pedidos Online'],
                         'admin.collections'      => ['Vender', 'Cobranzas & Créditos'],
                         'customers.'             => ['Vender', 'Clientes'],
                         'products.'              => ['Catálogo', 'Productos'],
@@ -40,8 +39,6 @@
                         'cash_registers.'        => ['Administración', 'Puntos de Venta'],
                         'users.'                 => ['Administración', 'Usuarios'],
                         'sellers.'               => ['Administración', 'Vendedores'],
-                        'pages.'                 => ['Configurar', 'Páginas (CMS)'],
-                        'admin.media'            => ['Configurar', 'Gestor de Medios'],
                         'profile.'               => ['Usuario', 'Mi Perfil'],
                         'cash.'                  => ['Caja', 'Mi Caja'],
                         'master.'                => ['Master', 'Control Licensing'],
@@ -132,18 +129,6 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- Ver mi Tienda Online (External Link Button) --}}
-                @if(App\Services\LicenseService::isEcommerceEnabled())
-                <a href="{{ route('shop.index') }}" target="_blank"
-                   class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition border border-indigo-200 dark:border-indigo-800"
-                   title="Abrir tienda web pública en una nueva pestaña">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                    </svg>
-                    <span>Ver Tienda</span>
-                </a>
-                @endif
 
                 {{-- Dark Mode Toggle --}}
                 <button

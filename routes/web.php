@@ -21,13 +21,8 @@ if (app()->environment('local')) {
     });
 }
 
-Route::middleware([\App\Http\Middleware\RequireEcommerceLicense::class])->group(function () {
-    Route::get('/', \App\Livewire\Shop\Index::class)->name('shop.index');
-    Route::get('/descargar-precios', [\App\Http\Controllers\PricelistController::class, 'download'])->name('shop.pricelist.download');
-    Route::get('/c/{category}', \App\Livewire\Shop\CategoryShow::class)->name('shop.category');
-    Route::get('/p/{product}', \App\Livewire\Shop\ProductShow::class)->name('shop.product');
-    Route::get('/pagina/{slug}', \App\Livewire\Shop\PageShow::class)->name('shop.page');
-    Route::get('/buscar', \App\Livewire\Shop\SearchShow::class)->name('shop.search');
+Route::get('/', function () {
+    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
 Route::middleware([
@@ -46,9 +41,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/customers/{customer}/statement', [\App\Http\Controllers\ReportsController::class, 'printAccountStatement'])->name('customers.statement');
     Route::get('/sales/{sale}/ticket', [\App\Http\Controllers\TicketController::class, 'show'])->name('sales.ticket');
     Route::get('/settings/billing', \App\Livewire\Settings\Billing::class)->name('settings.billing');
-    Route::middleware([\App\Http\Middleware\RequireEcommerceLicense::class])->group(function () {
-        Route::get('/web-orders', \App\Livewire\Admin\WebOrders\Index::class)->name('admin.web-orders.index');
-    });
 
     // Gerente + Admin Routes (store management)
     Route::middleware(['can:gerente'])->group(function () {
@@ -89,18 +81,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin-Only Routes (system config)
     Route::middleware(['can:admin'])->group(function () {
-        Route::get('/admin/media', \App\Livewire\Admin\MediaManager::class)->name('admin.media');
         Route::get('/users', \App\Livewire\Users\Index::class)->name('users.index');
         Route::get('/settings/branches', \App\Livewire\Branches\Index::class)->name('branches.index');
         Route::get('/settings/registers', \App\Livewire\CashRegisters\Index::class)->name('cash_registers.index');
         Route::get('/settings/general', \App\Livewire\Settings\General::class)->name('settings.general');
-        Route::middleware([\App\Http\Middleware\RequireEcommerceLicense::class])->group(function () {
-            Route::get('/settings/customization', \App\Livewire\Settings\WebCustomization::class)->name('settings.customization');
-            Route::get('/settings/menus', \App\Livewire\Settings\Menus::class)->name('settings.menus');
-            Route::get('/settings/pages', \App\Livewire\Admin\Pages\Index::class)->name('pages.index');
-            Route::get('/settings/pages/create', \App\Livewire\Admin\Pages\Form::class)->name('pages.create');
-            Route::get('/settings/pages/{page}/edit', \App\Livewire\Admin\Pages\Form::class)->name('pages.edit');
-        });
         Route::get('/settings/units', \App\Livewire\Settings\Units::class)->name('settings.units');
         Route::get('/settings/payment-methods', \App\Livewire\Settings\PaymentMethods::class)->name('settings.payment-methods');
         Route::get('/settings/cash-movement-categories', \App\Livewire\Settings\CashMovementCategories::class)->name('settings.cash-movement-categories');

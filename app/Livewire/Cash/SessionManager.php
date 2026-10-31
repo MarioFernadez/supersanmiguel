@@ -60,10 +60,11 @@ class SessionManager extends Component
             ->first();
 
         if ($this->currentSession) {
-            // Calculate totals since opening
+            // Calculate totals since opening (excluding voided sales)
             $sales = Sale::with('payments')
                 ->where('user_id', Auth::id())
                 ->where('created_at', '>=', $this->currentSession->opened_at)
+                ->where('status', '!=', 'voided')
                 ->get();
             
             $this->totalSales = $sales->sum('total');

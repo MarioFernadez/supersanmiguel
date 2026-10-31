@@ -502,8 +502,9 @@ class SifenService
                 ? 'DOCUMENTO ELECTRÓNICO SIN VALOR COMERCIAL NI FISCAL - GENERADO EN AMBIENTE DE PRUEBA'
                 : ($item['name'] ?? 'Producto ' . $i);
             $gCamItem->addChild('dDesProSer', htmlspecialchars($itemDesc));
-            $gCamItem->addChild('cUniMed', '77'); // UNI
-            $gCamItem->addChild('dDesUniMed', 'UNI');
+            $isKg = (($item['unit_type'] ?? '') === 'kg');
+            $gCamItem->addChild('cUniMed', $isKg ? '83' : '77');
+            $gCamItem->addChild('dDesUniMed', $isKg ? 'KG' : 'UNI');
             $qty = (float)($item['quantity'] ?? 1);
             $gCamItem->addChild('dCantProSer', number_format($qty, 4, '.', ''));
 
@@ -517,15 +518,29 @@ class SifenService
             $gValorRestaItem = $gValorItem->addChild('gValorRestaItem');
             $gValorRestaItem->addChild('dTotOpeItem', number_format($subtotal, 8, '.', ''));
 
+            $taxRate = (int)($item['tax_rate'] ?? ($isKg ? 5 : 10));
+            if ($taxRate !== 5 && $taxRate !== 10 && $taxRate !== 0) {
+                $taxRate = 10;
+            }
+
             $gCamIVA = $gCamItem->addChild('gCamIVA');
-            $gCamIVA->addChild('iAfecIVA', '1'); // Gravado IVA
-            $gCamIVA->addChild('dDesAfecIVA', 'Gravado IVA');
-            $gCamIVA->addChild('dPropIVA', '100');
-            $gCamIVA->addChild('dTasaIVA', '10');
-            $itemLiqIva = round($subtotal / 11);
-            $itemBaseGrav = $subtotal - $itemLiqIva;
-            $gCamIVA->addChild('dBasGravIVA', number_format($itemBaseGrav, 8, '.', ''));
-            $gCamIVA->addChild('dLiqIVAItem', number_format($itemLiqIva, 8, '.', ''));
+            if ($taxRate === 0) {
+                $gCamIVA->addChild('iAfecIVA', '3'); // Exento
+                $gCamIVA->addChild('dDesAfecIVA', 'Exento');
+                $gCamIVA->addChild('dPropIVA', '0');
+                $gCamIVA->addChild('dTasaIVA', '0');
+                $gCamIVA->addChild('dBasGravIVA', '0.00000000');
+                $gCamIVA->addChild('dLiqIVAItem', '0.00000000');
+            } else {
+                $gCamIVA->addChild('iAfecIVA', '1'); // Gravado IVA
+                $gCamIVA->addChild('dDesAfecIVA', 'Gravado IVA');
+                $gCamIVA->addChild('dPropIVA', '100');
+                $gCamIVA->addChild('dTasaIVA', (string)$taxRate);
+                $itemLiqIva = ($taxRate === 5) ? round($subtotal / 21) : round($subtotal / 11);
+                $itemBaseGrav = $subtotal - $itemLiqIva;
+                $gCamIVA->addChild('dBasGravIVA', number_format($itemBaseGrav, 8, '.', ''));
+                $gCamIVA->addChild('dLiqIVAItem', number_format($itemLiqIva, 8, '.', ''));
+            }
             $i++;
         }
 

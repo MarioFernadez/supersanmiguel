@@ -28,12 +28,6 @@ class LicenseService
         return StoreSetting::where('key', 'license_tier_name')->first()?->value ?: 'Básico';
     }
 
-    public static function isEcommerceEnabled(): bool
-    {
-        $setting = StoreSetting::where('key', 'license_ecommerce_enabled')->first();
-        return $setting ? $setting->value === '1' : true;
-    }
-
     public static function isSifenEnabled(): bool
     {
         $setting = StoreSetting::where('key', 'sifen_master_enabled')->first();

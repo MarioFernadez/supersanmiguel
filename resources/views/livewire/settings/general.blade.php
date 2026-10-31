@@ -111,56 +111,6 @@
                                 </div>
                             </div>
 
-                            <!-- Barra de Beneficios (Home) -->
-                            @if(\App\Services\LicenseService::isEcommerceEnabled())
-                            <div class="col-span-6 border-t border-gray-100 dark:border-gray-700 pt-5 mt-2">
-                                <h4 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-3">✨ Barra de Beneficios (Home)</h4>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Esta barra informativa aparece en la página de inicio. Borra el título de una característica si no deseas que aparezca.</p>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <!-- Beneficio 1 -->
-                                    <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-                                        <div class="flex items-center gap-2 mb-3 text-indigo-500">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                                            <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Beneficio 1 (Seguridad)</span>
-                                        </div>
-                                        <input type="text" wire:model="shop_feature_1_title" class="mb-2 block w-full shadow-sm text-sm border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 font-bold" placeholder="Ej: Compra segura">
-                                        <input type="text" wire:model="shop_feature_1_subtitle" class="block w-full shadow-sm text-xs border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-gray-500" placeholder="Ej: Pago protegido con SSL">
-                                    </div>
-
-                                    <!-- Beneficio 2 -->
-                                    <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-                                        <div class="flex items-center gap-2 mb-3 text-indigo-500">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-                                            <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Beneficio 2 (Envíos)</span>
-                                        </div>
-                                        <input type="text" wire:model="shop_feature_2_title" class="mb-2 block w-full shadow-sm text-sm border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 font-bold" placeholder="Ej: Envío a todo el país">
-                                        <input type="text" wire:model="shop_feature_2_subtitle" class="block w-full shadow-sm text-xs border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-gray-500" placeholder="Ej: Despachamos a todos los departamentos">
-                                    </div>
-
-                                    <!-- Beneficio 3 -->
-                                    <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-                                        <div class="flex items-center gap-2 mb-3 text-indigo-500">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                            <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Beneficio 3 (Cambios)</span>
-                                        </div>
-                                        <input type="text" wire:model="shop_feature_3_title" class="mb-2 block w-full shadow-sm text-sm border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 font-bold" placeholder="Ej: Cambios fáciles">
-                                        <input type="text" wire:model="shop_feature_3_subtitle" class="block w-full shadow-sm text-xs border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-gray-500" placeholder="Ej: 15 días para cambiar">
-                                    </div>
-
-                                    <!-- Beneficio 4 -->
-                                    <div class="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-                                        <div class="flex items-center gap-2 mb-3 text-indigo-500">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                                            <span class="text-sm font-bold text-gray-700 dark:text-gray-300">Beneficio 4 (Soporte)</span>
-                                        </div>
-                                        <input type="text" wire:model="shop_feature_4_title" class="mb-2 block w-full shadow-sm text-sm border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 font-bold" placeholder="Ej: Atención al cliente">
-                                        <input type="text" wire:model="shop_feature_4_subtitle" class="block w-full shadow-sm text-xs border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-gray-500" placeholder="Ej: Soporte por WhatsApp">
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-
                         </div>
                     </div>
                     <div class="px-6 py-4 bg-gray-50/50 dark:bg-gray-900/50 text-right">

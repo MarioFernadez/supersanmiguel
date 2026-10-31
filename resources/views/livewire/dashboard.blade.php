@@ -33,7 +33,7 @@
         @endphp
 
         <!-- KPI Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ \App\Services\LicenseService::isEcommerceEnabled() ? '5' : '4' }} gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <!-- Sales Today -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700/80 relative overflow-hidden group hover:shadow-md transition-all duration-300">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-full opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
@@ -66,23 +66,6 @@
                 </div>
             </div>
             @endcan
-
-            @if(\App\Services\LicenseService::isEcommerceEnabled())
-                <!-- Pending Web Orders -->
-                <a href="{{ route('admin.web-orders.index') }}" class="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700/80 relative overflow-hidden group hover:border-orange-200 dark:hover:border-orange-500/50 hover:shadow-md transition-all duration-300">
-                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 dark:bg-orange-900/20 rounded-full opacity-50 group-hover:scale-125 transition-transform duration-500"></div>
-                    <div class="relative z-10">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pedidos Web</p>
-                            <span class="text-sm">🌐</span>
-                        </div>
-                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white leading-none tabular-nums">{{ $pendingWebOrdersCount }}</h3>
-                        <div class="mt-4 flex items-center text-xs font-medium {{ $pendingWebOrdersCount > 0 ? 'text-orange-700 bg-orange-50 dark:bg-orange-950/40 dark:text-orange-300 border border-orange-200/60' : 'text-gray-500 bg-gray-50 dark:bg-gray-700 dark:text-gray-400' }} px-2.5 py-1 rounded-lg w-fit">
-                            {{ $pendingWebOrdersCount > 0 ? $pendingWebOrdersCount . ' pendientes' : 'Al día' }}
-                        </div>
-                    </div>
-                </a>
-            @endif
 
             <!-- Customers -->
             <a href="{{ route('customers.index') }}" class="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-gray-700/80 relative overflow-hidden group hover:border-blue-200 dark:hover:border-blue-500/50 hover:shadow-md transition-all duration-300">

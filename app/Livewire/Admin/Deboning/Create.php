@@ -78,8 +78,10 @@ class Create extends Component
     {
         if ($this->raw_material_product_id && $this->total_weight_start > 0) {
             $rawMaterial = Product::find($this->raw_material_product_id);
-            if ($rawMaterial && floatval($this->total_weight_start) > $rawMaterial->stock) {
-                $this->addError('total_weight_start', 'No tienes suficiente stock. Stock actual: ' . number_format($rawMaterial->stock, 2) . ' Kg.');
+            $branchId = auth()->user()->branch_id ?? \App\Models\Branch::first()?->id;
+            $stock = $rawMaterial ? ($rawMaterial->branchStocks()->where('branch_id', $branchId)->value('stock') ?? 0) : 0;
+            if ($rawMaterial && floatval($this->total_weight_start) > $stock) {
+                $this->addError('total_weight_start', 'No tienes suficiente stock en esta sucursal. Stock actual: ' . number_format($stock, 2) . ' Kg.');
             } else {
                 $this->resetErrorBag('total_weight_start');
             }
@@ -90,15 +92,18 @@ class Create extends Component
     {
         $this->validate([
             'raw_material_product_id' => 'required|exists:products,id',
-            'total_weight_start'      => 'required|numeric|min:0.1',
+            'total_weight_start'      => 'required|numeric|gt:0|max:50000',
             'items'                   => 'required|array|min:1',
             'items.*.product_id'      => 'required|exists:products,id',
-            'items.*.weight'          => 'required|numeric|min:0.01',
+            'items.*.weight'          => 'required|numeric|gt:0|max:50000',
         ]);
 
         $rawMaterial = Product::find($this->raw_material_product_id);
-        if ($rawMaterial && floatval($this->total_weight_start) > $rawMaterial->stock) {
-            $this->addError('total_weight_start', 'El peso a despostar no puede superar el stock actual (' . number_format($rawMaterial->stock, 2) . ' Kg).');
+        $branchId = auth()->user()->branch_id ?? \App\Models\Branch::first()?->id;
+        $stock = $rawMaterial ? ($rawMaterial->branchStocks()->where('branch_id', $branchId)->value('stock') ?? 0) : 0;
+
+        if ($rawMaterial && floatval($this->total_weight_start) > $stock) {
+            $this->addError('total_weight_start', 'El peso a despostar no puede superar el stock de esta sucursal (' . number_format($stock, 2) . ' Kg).');
             return;
         }
 

@@ -13,19 +13,29 @@ class PaymentMethodSeeder extends Seeder
         PaymentMethod::query()->delete();
 
         PaymentMethod::create([
+            'name' => 'Efectivo',
+            'code' => 'efectivo',
+            'type' => 'cash',
+            'is_active' => true,
+        ]);
+
+        PaymentMethod::create([
             'name' => 'Tarjeta',
+            'code' => 'tarjeta',
             'type' => 'card',
             'is_active' => true,
         ]);
 
         PaymentMethod::create([
             'name' => 'Transferencia',
+            'code' => 'transferencia',
             'type' => 'transfer',
             'is_active' => true,
         ]);
 
         PaymentMethod::create([
             'name' => 'QR',
+            'code' => 'qr',
             'type' => 'qr',
             'is_active' => true,
         ]);

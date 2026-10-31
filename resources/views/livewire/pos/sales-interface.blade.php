@@ -101,18 +101,6 @@
                     </div>
                     @endif
 
-                    <!-- Web Orders Button -->
-                    @if(\App\Services\LicenseService::isEcommerceEnabled())
-                    <button type="button" wire:click="openWebOrdersModal" class="relative bg-indigo-50 border border-indigo-200/80 hover:bg-indigo-100 text-indigo-700 p-2 rounded-xl transition-all flex items-center justify-center shadow-sm active:scale-95 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/50" title="Pedidos Web Pendientes">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        @if($pendingWebOrdersCount > 0)
-                            <span class="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-white animate-bounce shadow-sm">
-                                {{ $pendingWebOrdersCount > 9 ? '9+' : $pendingWebOrdersCount }}
-                            </span>
-                        @endif
-                    </button>
-                    @endif
-
                     <button type="button" wire:click="openMovementModal('in')" wire:loading.attr="disabled" class="bg-gray-50 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-xl text-sm border border-gray-200/80 dark:border-gray-600 transition-colors flex items-center justify-center shadow-sm" title="Registrar Movimientos">
                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     </button>
@@ -301,11 +289,6 @@
                     <svg class="w-5 h-5 mr-2 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     Carrito
                 </h2>
-                @if($importingWebOrderId)
-                    <div class="bg-indigo-50 border border-indigo-200/80 text-indigo-700 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider animate-pulse dark:bg-indigo-950/40 dark:text-indigo-300">
-                        Pedido Web
-                    </div>
-                @endif
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-semibold bg-indigo-50 border border-indigo-200/60 text-indigo-700 px-2.5 py-0.5 rounded-full dark:bg-indigo-950/40 dark:text-indigo-300">{{ count($cart) }} {{ count($cart) === 1 ? 'ítem' : 'ítems' }}</span>
                     @if(count($cart) > 0)
@@ -1413,95 +1396,6 @@
 </div>
 @endif
 
-    <!-- Web Orders List Modal -->
-    @if($showWebOrdersModal)
-        <div class="fixed z-[100] inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                <div class="inline-block align-bottom bg-white rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-white/20 dark:bg-gray-800">
-                    <div class="bg-gray-50/50 dark:bg-gray-900/50 px-6 py-4 border-b border-gray-100 flex justify-between items-center dark:border-gray-700">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-lg shadow-indigo-100">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z"></path></svg>
-                            </div>
-                            <h3 class="text-xl font-black text-gray-900 uppercase tracking-tighter dark:text-white">Pedidos Web Pendientes</h3>
-                        </div>
-                        <button wire:click="$set('showWebOrdersModal', false)" class="text-gray-400 hover:text-gray-600 transition dark:text-gray-500">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
-                    </div>
-
-                    <div class="p-6">
-                        @if(empty($pendingWebOrders))
-                            <div class="flex flex-col items-center justify-center py-12 text-gray-400 italic dark:text-gray-500">
-                                <svg class="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <p class="text-lg font-bold tracking-tight uppercase">No hay pedidos web pendientes</p>
-                            </div>
-                        @else
-                            <div class="overflow-x-auto rounded-2xl border border-gray-100 dark:border-gray-700">
-                                <table class="w-full text-left">
-                                    <thead>
-                                        <tr class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest dark:bg-gray-900 dark:text-gray-500">
-                                            <th class="px-4 py-3">Fecha</th>
-                                            <th class="px-4 py-3">Cliente</th>
-                                            <th class="px-4 py-3">Productos</th>
-                                            <th class="px-4 py-3 text-right">Total</th>
-                                            <th class="px-4 py-3 text-center">Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                                        @foreach($pendingWebOrders as $order)
-                                            <tr class="hover:bg-indigo-50/30 transition-colors">
-                                                <td class="px-4 py-4">
-                                                    <div class="text-[10px] font-bold text-gray-900 uppercase dark:text-white">{{ \Carbon\Carbon::parse($order['created_at'])->diffForHumans() }}</div>
-                                                    <div class="text-[9px] text-gray-400 tabular-nums dark:text-gray-500">{{ \Carbon\Carbon::parse($order['created_at'])->format('d/m/Y H:i') }}</div>
-                                                </td>
-                                                <td class="px-4 py-4">
-                                                    <div class="text-xs font-black text-gray-900 uppercase truncate max-w-[150px] dark:text-white">{{ $order['customer_name'] }}</div>
-                                                    <div class="text-[10px] font-bold text-indigo-600 tabular-nums dark:text-indigo-400">{{ $order['customer_phone'] }}</div>
-                                                </td>
-                                                <td class="px-4 py-4">
-                                                    <div class="text-[10px] text-gray-600 line-clamp-2 dark:text-gray-400">
-                                                        @if(!empty($order['items_json']))
-                                                            @foreach($order['items_json'] as $item)
-                                                                <span class="font-bold text-indigo-500">{{ $item['quantity'] }}x</span> {{ $item['name'] }}{{ !$loop->last ? ',' : '' }}
-                                                            @endforeach
-                                                        @else
-                                                            {{ $order['product']['name'] ?? 'Producto' }}
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-4 text-right">
-                                                    <div class="text-sm font-black text-gray-900 tabular-nums dark:text-white">₲ {{ number_format($order['total'], 0, ',', '.') }}</div>
-                                                    <div class="text-[9px] font-bold uppercase {{ $order['payment_method'] === 'transferencia' ? 'text-indigo-500' : 'text-emerald-500' }}">
-                                                        {{ $order['payment_method'] }}
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-4 text-center">
-                                                    <button wire:click="importWebOrder('{{ $order['id'] }}')" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition shadow-lg shadow-indigo-100 active:scale-95">
-                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                                        Importar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="bg-gray-50 px-6 py-4 flex justify-end dark:bg-gray-900">
-                        <button wire:click="$set('showWebOrdersModal', false)" class="px-6 py-2 bg-white text-gray-500 font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-gray-100 transition border border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:border-gray-700">
-                            Cerrar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
     <!-- Variation Selection Modal -->
     @if($showVariationModal && $selectingProduct)
         <div class="fixed z-[100] inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">

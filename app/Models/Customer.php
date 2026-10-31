@@ -18,10 +18,12 @@ class Customer extends Model
         'phone',
         'address',
         'is_active',
+        'credit_limit',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'credit_limit' => 'float',
     ];
 
     public function transactions()

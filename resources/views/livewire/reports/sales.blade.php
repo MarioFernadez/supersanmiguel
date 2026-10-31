@@ -39,15 +39,6 @@
                             Semana
                         </button>
                     </div>
-
-                    <div class="w-full md:w-auto">
-                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 shadow-sm dark:text-gray-400 dark:shadow-none">Canal</label>
-                        <select wire:model.live="channel" class="w-full border-gray-200 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 transition text-sm py-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                            <option value="all">Todos los Canales</option>
-                            <option value="pos">🛒 Venta en Tienda</option>
-                            <option value="web">🌐 Venta Web</option>
-                        </select>
-                    </div>
                 </div>
             </div>
 
@@ -139,7 +130,6 @@
                             <th class="px-6 py-4">ID / Fecha</th>
                             <th class="px-6 py-4">Cliente</th>
                             <th class="px-6 py-4">Vendedor</th>
-                            <th class="px-6 py-4 text-center">Canal</th>
                             <th class="px-6 py-4 text-right">Total</th>
                             <th class="px-6 py-4 text-center">Estado</th>
                             <th class="px-6 py-4 text-right">Acciones</th>
@@ -158,19 +148,6 @@
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 font-normal dark:text-gray-400">
                                     {{ $sale->seller->name ?? '—' }}
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    @if($sale->web_order_id)
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-200/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z"></path></svg>
-                                            Web
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-50 text-gray-600 text-xs font-medium border border-gray-200/60 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                            Tienda
-                                        </span>
-                                    @endif
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="text-sm font-semibold text-gray-900 dark:text-white tabular-nums"><span class="text-xs text-gray-400 font-normal mr-0.5">₲</span>{{ format_pyg($sale->total) }}</div>
@@ -211,7 +188,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center text-gray-400 italic dark:text-gray-500">No hay ventas registradas en este periodo.</td>
+                                <td colspan="6" class="px-6 py-12 text-center text-gray-400 italic dark:text-gray-500">No hay ventas registradas en este periodo.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -301,13 +278,6 @@
                                     <p class="text-sm font-bold text-gray-900 mt-1 dark:text-white">Fecha: {{ $selectedSale->created_at->format('d/m/Y H:i') }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">Cajero: {{ $selectedSale->user->name }}</p>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">Vendedor: {{ $selectedSale->seller->name ?? '—' }}</p>
-                                    <div class="mt-2">
-                                        @if($selectedSale->web_order_id)
-                                            <span class="px-2 py-0.5 bg-indigo-600 text-white text-[9px] font-black uppercase rounded shadow-sm dark:shadow-none">Pedido Web #{{ $selectedSale->web_order_id }}</span>
-                                        @else
-                                            <span class="px-2 py-0.5 bg-gray-600 text-white text-[9px] font-black uppercase rounded shadow-sm dark:shadow-none">Venta en Tienda</span>
-                                        @endif
-                                    </div>
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest dark:text-gray-400">Cliente</p>

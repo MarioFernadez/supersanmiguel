@@ -14,7 +14,6 @@ class LicenseManager extends Component
     public $maxCashRegisters;
     public $maxBranches;
     public $tierName;
-    public $ecommerceEnabled;
     public $sifenMasterEnabled;
 
     // Campos de Suscripción
@@ -35,7 +34,6 @@ class LicenseManager extends Component
         $this->maxCashRegisters = LicenseService::getMaxCashRegisters();
         $this->maxBranches = LicenseService::getMaxBranches();
         $this->tierName = LicenseService::getTierName();
-        $this->ecommerceEnabled = LicenseService::isEcommerceEnabled();
         $this->sifenMasterEnabled = LicenseService::isSifenEnabled();
 
         $this->enabledAt = LicenseService::getEnabledAt()->format('Y-m-d');
@@ -52,7 +50,6 @@ class LicenseManager extends Component
             'maxCashRegisters' => 'required|integer|min:1',
             'maxBranches' => 'required|integer|min:1',
             'tierName' => 'required|string|min:2',
-            'ecommerceEnabled' => 'boolean',
             'sifenMasterEnabled' => 'boolean',
             'enabledAt' => 'required|date',
             'expiresAt' => 'required|date',
@@ -63,7 +60,6 @@ class LicenseManager extends Component
             '--registers' => $this->maxCashRegisters,
             '--branches' => $this->maxBranches,
             '--tier' => $this->tierName,
-            '--ecommerce' => $this->ecommerceEnabled ? '1' : '0',
         ]);
 
         StoreSetting::updateOrCreate(

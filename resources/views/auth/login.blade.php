@@ -2,12 +2,12 @@
     <x-authentication-card>
         <div class="mb-8 text-center sm:mb-6">
             <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-                Bienvenido a <span class="text-emerald-600 dark:text-emerald-400">{{ \App\Services\LicenseService::isEcommerceEnabled() ? 'ZonaShop' : 'ZonaPOS' }}</span>
+                Bienvenido a <span class="text-emerald-600 dark:text-emerald-400">ZonaShop</span>
             </h1>
             
             <div class="mt-2.5">
                 <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40">
-                    {{ \App\Services\LicenseService::isEcommerceEnabled() ? 'Catálogo E-commerce' : 'Sistema POS & Ventas' }}
+                    Sistema POS & Ventas
                 </span>
             </div>
 

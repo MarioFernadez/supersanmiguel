@@ -71,8 +71,7 @@ class Dashboard extends Component
             $ordersData[] = (int) ($dailySales[$dateKey]->count ?? 0);
         }
 
-        // 5. Pending Web Orders & Customers
-        $pendingWebOrdersCount = \App\Models\WebOrder::where('status', 'Pendiente WhatsApp')->count();
+        // 5. Customers
         $totalCustomers = \App\Models\Customer::where('is_active', true)->count();
 
         // 6. Top Selling Products (Last 30 Days)
@@ -95,7 +94,6 @@ class Dashboard extends Component
             'salesLabels' => $salesLabels,
             'salesData' => $salesData,
             'ordersData' => $ordersData,
-            'pendingWebOrdersCount' => $pendingWebOrdersCount,
             'totalCustomers' => $totalCustomers,
             'topProducts' => $topProducts
         ])->layout('layouts.app');

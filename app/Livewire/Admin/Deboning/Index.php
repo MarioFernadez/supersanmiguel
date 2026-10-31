@@ -94,7 +94,7 @@ class Index extends Component
                 'notes'                   => 'Cierre mensual / liquidación de carne global. Remanente real: ' . number_format($physical, 2) . ' Kg. Merma: ' . number_format($waste, 2) . ' Kg. ' . $this->closureNotes,
             ]);
 
-            // 2. Registrar movimiento de inventario por la merma si hubo merma
+            // 2. Registrar movimiento de inventario por merma o sobrante
             if ($waste > 0) {
                 InventoryMovement::create([
                     'product_id' => $rawMaterial->id,
@@ -103,6 +103,16 @@ class Index extends Component
                     'quantity'   => $waste,
                     'reason'     => 'Merma de Carnicería (Cierre de Mes)',
                     'notes'      => 'Ajuste mensual de merma de carne global en base a ventas de balanza y cortes derivados.',
+                ]);
+            } elseif ($physical > $currentStock) {
+                $surplus = $physical - $currentStock;
+                InventoryMovement::create([
+                    'product_id' => $rawMaterial->id,
+                    'user_id'    => auth()->id(),
+                    'type'       => 'in',
+                    'quantity'   => $surplus,
+                    'reason'     => 'Ajuste Físico Positivo (Cierre de Mes)',
+                    'notes'      => 'Sobrante físico registrado en cámara de frío.',
                 ]);
             }
 

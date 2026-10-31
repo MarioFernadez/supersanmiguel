@@ -78,24 +78,6 @@
         </div>
     </div>
 
-    @if(App\Services\LicenseService::isEcommerceEnabled())
-    <div class="relative group/flyout">
-        <a href="{{ route('shop.index') }}" target="_blank"
-           :class="collapsed ? 'justify-center px-0 h-11' : 'px-3.5 py-2.5 gap-3'"
-           class="{{ $topLinkClass(false) }}"
-           title="Ver Tienda Online">
-            <svg class="w-5 h-5 flex-shrink-0 text-slate-300 group-hover/flyout:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-            <span x-show="!collapsed" class="truncate font-medium">Ver Tienda</span>
-            <span x-show="!collapsed" class="ml-auto text-[10px] bg-[#25b9d7]/20 text-[#25b9d7] px-1.5 py-0.5 rounded font-mono">web</span>
-        </a>
-        <div x-show="collapsed" class="absolute left-full top-0 ml-1 px-3 py-2 bg-[#1e282c] border border-slate-700 text-white text-xs font-semibold rounded shadow-2xl whitespace-nowrap hidden group-hover/flyout:block z-[9999]">
-            Ver Tienda Online ↗
-        </div>
-    </div>
-    @endif
-
     {{-- ════════════════════════════════════════════════
          SECCIÓN: VENDER (SELL)
     ═════════════════════════════════════════════════ --}}
@@ -106,7 +88,6 @@
     {{-- 1. PEDIDOS & POS (Bolsa de Compras PrestaShop) --}}
     @php
         $pedidosActive = request()->routeIs('pos.*')
-            || request()->routeIs('admin.web-orders.*')
             || request()->routeIs('reports.cash')
             || request()->routeIs('reports.cash-movements');
     @endphp
@@ -140,11 +121,6 @@
                     Salón y Mesas
                 </a>
                 @endif
-                @if(\App\Services\LicenseService::isEcommerceEnabled())
-                <a href="{{ route('admin.web-orders.index') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('admin.web-orders.*')) }}">
-                    Pedidos Online
-                </a>
-                @endif
                 <a href="{{ route('reports.cash') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('reports.cash') || request()->routeIs('reports.cash-movements')) }}">
                     Arqueos y Cierres de Caja
                 </a>
@@ -160,9 +136,6 @@
                 <a href="{{ route('pos.index') }}" class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Punto de Venta (POS)</a>
                 @if(hasModule('restaurant'))
                 <a href="{{ route('pos.index') }}" class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Salón y Mesas</a>
-                @endif
-                @if(\App\Services\LicenseService::isEcommerceEnabled())
-                <a href="{{ route('admin.web-orders.index') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Pedidos Online</a>
                 @endif
                 <a href="{{ route('reports.cash') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Arqueos y Cierres de Caja</a>
             </div>
@@ -476,11 +449,9 @@
     @php
         $tiendaParamActive = request()->routeIs('settings.general')
             || request()->routeIs('settings.billing')
+            || request()->routeIs('settings.invoicing')
             || request()->routeIs('settings.quotation')
-            || request()->routeIs('settings.restaurant')
-            || request()->routeIs('settings.customization')
-            || request()->routeIs('pages.*')
-            || request()->routeIs('admin.media');
+            || request()->routeIs('settings.restaurant');
     @endphp
     <div class="relative group/flyout" x-data="{ open: {{ $tiendaParamActive ? 'true' : 'false' }} }">
         <button @click="!collapsed && (open = !open)"
@@ -522,11 +493,6 @@
                     Mesas & Mozos
                 </a>
                 @endif
-                @if(\App\Services\LicenseService::isEcommerceEnabled())
-                <a href="{{ route('settings.customization') }}" wire:navigate class="{{ $subLinkClass(request()->routeIs('settings.customization') || request()->routeIs('pages.*') || request()->routeIs('admin.media')) }}">
-                    Personalización Web
-                </a>
-                @endif
                 @endcan
             </div>
         </div>
@@ -544,9 +510,6 @@
                 <a href="{{ route('settings.quotation') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Cotizaciones Divisas</a>
                 @if(hasModule('restaurant'))
                 <a href="{{ route('settings.restaurant') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Mesas & Mozos</a>
-                @endif
-                @if(\App\Services\LicenseService::isEcommerceEnabled())
-                <a href="{{ route('settings.customization') }}" wire:navigate class="block px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700 hover:text-white rounded">Personalización Web</a>
                 @endif
                 @endcan
             </div>

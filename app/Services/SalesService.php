@@ -8,7 +8,6 @@ use App\Models\Product;
 use App\Models\ProductVariation;
 use App\Models\Payment;
 use App\Models\CustomerTransaction;
-use App\Models\WebOrder;
 use App\Models\RestaurantTable;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -28,8 +27,34 @@ class SalesService
             $branchId = $data['branch_id'];
             $cart = $data['cart'];
             $paymentCondition = $data['payment_condition'];
-            $paymentMethod = $data['payment_method'];
+            $paymentMethod = $data['payment_method'] ?? ($paymentCondition === 'credito' ? 'credito' : 'efectivo');
             $total = (float) $data['total'];
+
+            // Calcular impuestos por ítem según tasa (5% para carnes/pesables, 10% general, 0% exentas)
+            $calcTax10 = 0;
+            $calcTax5  = 0;
+            $calcExempt = 0;
+            foreach ($cart as $item) {
+                $sub = (float)($item['subtotal'] ?? ($item['price'] * $item['quantity']));
+                $p = Product::find($item['id']);
+                $rate = 10;
+                if ($p) {
+                    if ($p->tax_rate === 5 || $p->tax_rate === 0) {
+                        $rate = $p->tax_rate;
+                    } elseif ($p->unit_type === 'kg') {
+                        $rate = 5; // En Paraguay carnes en estado natural son IVA 5%
+                    } else {
+                        $rate = (int)($p->tax_rate ?: 10);
+                    }
+                }
+                if ($rate === 5) {
+                    $calcTax5 += (int) round($sub / 21);
+                } elseif ($rate === 0) {
+                    $calcExempt += (int) round($sub);
+                } else {
+                    $calcTax10 += (int) round($sub / 11);
+                }
+            }
 
             // 1. Create Sale record
             $sale = Sale::create([
@@ -40,12 +65,11 @@ class SalesService
                 'subtotal_before_discount' => $data['subtotal_before_discount'] ?? $total,
                 'discount_amount'          => $data['discount_amount'] ?? 0,
                 'total'                    => $total,
-                'tax_10'                   => (int) round($total / 11),
-                'tax_5'                    => 0,
-                'tax_exempt'               => 0,
+                'tax_10'                   => $calcTax10,
+                'tax_5'                    => $calcTax5,
+                'tax_exempt'               => $calcExempt,
                 'status'                   => 'completed',
                 'payment_condition'        => $paymentCondition,
-                'web_order_id'             => $data['web_order_id'] ?? null,
                 'restaurant_table_id'      => $data['restaurant_table_id'] ?? null,
                 'waiter_id'                => $data['waiter_id'] ?? null,
             ]);
@@ -153,6 +177,15 @@ class SalesService
                     Payment::create($paymentData);
                 }
             } elseif ($paymentCondition === 'credito' && !empty($sale->customer_id)) {
+                $customer = \App\Models\Customer::find($sale->customer_id);
+                if ($customer && $customer->credit_limit && (float)$customer->credit_limit > 0) {
+                    $currentBalance = (float)$customer->balance;
+                    if (($currentBalance + $total) > (float)$customer->credit_limit) {
+                        $exceeded = ($currentBalance + $total) - (float)$customer->credit_limit;
+                        throw new Exception("Límite de crédito excedido por ₲ " . number_format($exceeded, 0, '', '.') . " (Límite: ₲ " . number_format($customer->credit_limit, 0, '', '.') . " / Deuda actual: ₲ " . number_format($currentBalance, 0, '', '.') . ")");
+                    }
+                }
+
                 CustomerTransaction::create([
                     'customer_id'    => $sale->customer_id,
                     'type'           => 'debit',
@@ -163,12 +196,7 @@ class SalesService
                 ]);
             }
 
-            // 4. Complete Web Order if applicable
-            if (!empty($data['web_order_id'])) {
-                WebOrder::where('id', $data['web_order_id'])->update(['status' => 'Completado']);
-            }
-
-            // 5. Restaurant cleanup: Delete pending sale, free table
+            // 4. Restaurant cleanup: Delete pending sale, free table
             if (!empty($data['active_sale_id'])) {
                 Sale::where('id', $data['active_sale_id'])->delete();
             }

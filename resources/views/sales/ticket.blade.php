@@ -184,7 +184,9 @@
         <tbody>
             @foreach($sale->items as $item)
             <tr>
-                <td>{{ $item->quantity }}</td>
+                <td>
+                    {{ (float)$item->quantity == (int)$item->quantity ? (int)$item->quantity : number_format($item->quantity, 3, ',', '.') }}@if(($item->product->unit_type ?? '') === 'kg')&nbsp;kg @endif
+                </td>
                 <td>{{ Str::limit($item->product_name ?: ($item->product->name ?? 'Producto'), 22) }}</td>
                 <td class="text-right">{{ number_format($item->price_unit, 0, '', '.') }}</td>
                 <td class="text-right">{{ number_format($item->subtotal, 0, '', '.') }}</td>
@@ -194,18 +196,29 @@
     </table>
 
     <div class="totals">
+        @php
+            $baseGrav10 = (int)($sale->tax_10 > 0 ? round($sale->tax_10 * 10) : ($sale->total - $sale->tax_5 * 21));
+            $baseGrav5  = (int)($sale->tax_5 > 0 ? round($sale->tax_5 * 20) : 0);
+            $exempt     = (int)($sale->tax_exempt ?? 0);
+        @endphp
+        @if($baseGrav10 > 0)
         <div class="row-between">
             <span>Subtotal Gravadas 10%:</span>
-            <span>{{ format_pyg($sale->total - ($sale->tax_10 + $sale->tax_5)) }}</span>
+            <span>{{ format_pyg(max(0, $baseGrav10)) }}</span>
         </div>
+        @endif
+        @if($baseGrav5 > 0)
         <div class="row-between">
             <span>Subtotal Gravadas 5%:</span>
-            <span>{{ format_pyg($sale->tax_5) }}</span>
+            <span>{{ format_pyg($baseGrav5) }}</span>
         </div>
+        @endif
+        @if($exempt > 0)
         <div class="row-between">
             <span>Subtotal Exentas:</span>
-            <span>{{ format_pyg($sale->tax_exempt) }}</span>
+            <span>{{ format_pyg($exempt) }}</span>
         </div>
+        @endif
         <div class="row-between" style="border-top: 1px dotted #000; padding-top: 2px; margin-top: 2px;">
             <span>Liquidación Total IVA:</span>
             <span>{{ format_pyg($sale->tax_10 + $sale->tax_5) }}</span>

@@ -78,7 +78,7 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $item['name'] }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <input type="number" wire:model.live="items.{{ $key }}.quantity" wire:change="calculateTotal" class="w-20 text-center border-gray-300 rounded-md shadow-sm text-sm dark:border-gray-600 dark:shadow-none dark:bg-gray-900 dark:text-gray-300">
+                                    <input type="number" step="0.001" min="0.001" wire:model.live="items.{{ $key }}.quantity" wire:change="calculateTotal" class="w-24 text-center border-gray-300 rounded-md shadow-sm text-sm dark:border-gray-600 dark:shadow-none dark:bg-gray-900 dark:text-gray-300">
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <input type="number" wire:model.live="items.{{ $key }}.cost_price" wire:change="calculateTotal" class="w-32 text-center border-gray-300 rounded-md shadow-sm text-sm dark:border-gray-600 dark:shadow-none dark:bg-gray-900 dark:text-gray-300">

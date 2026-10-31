@@ -102,18 +102,6 @@
                             @error('expiresAt') <span class="text-red-500 text-xs mt-1.5 block font-bold tracking-tight">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Ecommerce Toggle -->
-                        <div class="col-span-2 md:col-span-1 bg-emerald-50/30 p-6 rounded-3xl border border-emerald-100/50 transition hover:shadow-md duration-300 flex items-center justify-between dark:bg-emerald-950/20 dark:border-emerald-900/30">
-                            <div class="space-y-1 pr-3">
-                                <label class="block text-[10px] font-black text-emerald-600 uppercase tracking-widest dark:text-emerald-500">Módulo de Catálogo E-commerce</label>
-                                <p class="text-[9px] text-slate-400 font-black tracking-widest uppercase dark:text-slate-500">Habilita la tienda pública en línea vinculada al POS</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                                <input type="checkbox" wire:model="ecommerceEnabled" class="sr-only peer">
-                                <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500 dark:bg-slate-800"></div>
-                            </label>
-                        </div>
-
                         <!-- Sifen Facturación Electrónica Toggle -->
                         <div class="col-span-2 md:col-span-1 bg-indigo-50/30 p-6 rounded-3xl border border-indigo-100/50 transition hover:shadow-md duration-300 flex items-center justify-between dark:bg-indigo-950/20 dark:border-indigo-900/30">
                             <div class="space-y-1 pr-3">

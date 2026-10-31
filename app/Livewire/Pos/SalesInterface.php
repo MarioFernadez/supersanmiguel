@@ -22,6 +22,7 @@ class SalesInterface extends Component
     public $showVariationModal = false;
     public $selectingProduct = null;
     public $variationId = '';
+    public $pendingScannedWeight = null;
 
     // Discount
     public $discountProductEnabled = false;
@@ -77,11 +78,6 @@ class SalesInterface extends Component
     public $currentRegisterName = null;
     public $sessionOpenedAt = null;
 
-    // Web Orders Integration
-    public $pendingWebOrders = [];
-    public $showWebOrdersModal = false;
-    public $importingWebOrderId = null;
-
     // Restaurant Module
     public $isRestaurantMode = false;
     public $showTableMap = true;         // true = show table map; false = active sale screen
@@ -134,7 +130,7 @@ class SalesInterface extends Component
     {
         $this->paymentMethods = \Illuminate\Support\Facades\Cache::remember('active_payment_methods', 3600, function () {
             return \App\Models\PaymentMethod::where('is_active', true)
-                ->orderBy('name')
+                ->orderByRaw("CASE WHEN type = 'cash' OR LOWER(name) = 'efectivo' THEN 0 ELSE 1 END, name ASC")
                 ->get();
         });
     }
@@ -307,7 +303,9 @@ class SalesInterface extends Component
         });
 
         $paymentMethods = \Illuminate\Support\Facades\Cache::remember('pos_active_payment_methods', 3600, function () {
-            return \App\Models\PaymentMethod::where('is_active', true)->orderBy('name')->get();
+            return \App\Models\PaymentMethod::where('is_active', true)
+                ->orderByRaw("CASE WHEN type = 'cash' OR LOWER(name) = 'efectivo' THEN 0 ELSE 1 END, name ASC")
+                ->get();
         });
         $this->paymentMethods = $paymentMethods;
 
@@ -321,19 +319,12 @@ class SalesInterface extends Component
                 ->get();
         });
 
-        $pendingWebOrdersCount = \Illuminate\Support\Facades\Cache::remember('pos_pending_web_orders_count', 30, function () {
-            return \App\Services\LicenseService::isEcommerceEnabled()
-                ? \App\Models\WebOrder::whereIn('status', ['Pendiente WhatsApp', 'Atendido'])->count()
-                : 0;
-        });
-
         return view('livewire.pos.sales-interface', [
             'products'             => $this->products,
             'categories'           => $categories,
             'branchId'             => $branchId,
             'paymentMethods'       => $paymentMethods,
             'movementCategories'   => $movementCategories,
-            'pendingWebOrdersCount' => $pendingWebOrdersCount,
             // Restaurant
             'restaurantTables'      => $this->isRestaurantMode ? \App\Models\RestaurantTable::with('currentSale')->get() : collect(),
             'waiters'               => $this->isRestaurantMode ? \App\Models\Waiter::where('active', true)->get() : collect(),
@@ -390,6 +381,18 @@ class SalesInterface extends Component
         }
     }
 
+    protected function isValidEan13(string $barcode): bool
+    {
+        if (strlen($barcode) !== 13 || !ctype_digit($barcode)) return false;
+        
+        $sum = 0;
+        for ($i = 0; $i < 12; $i++) {
+            $sum += (int)$barcode[$i] * ($i % 2 === 0 ? 1 : 3);
+        }
+        $checkDigit = (10 - ($sum % 10)) % 10;
+        return $checkDigit === (int)$barcode[12];
+    }
+
     protected function tryAutoAddBarcode($term, $isExplicitSubmit = false): bool
     {
         $term = trim((string)$term);
@@ -397,6 +400,13 @@ class SalesInterface extends Component
 
         // 1. EAN-13 Scale Barcode Logic (prefixes 20 through 29)
         if (strlen($term) === 13 && preg_match('/^2[0-9]/', $term)) {
+            // Validar checksum GS1 Módulo 10 si es numérico
+            if (ctype_digit($term) && !$this->isValidEan13($term)) {
+                $this->dispatch('error-movement', "Código de balanza con dígito verificador inválido.");
+                $this->dispatch('beep-error');
+                return true;
+            }
+
             $skuCode4 = substr($term, 2, 4);
             $weightString4 = substr($term, 6, 5);
             $weightInKg4 = (float)$weightString4 / 1000;
@@ -405,18 +415,35 @@ class SalesInterface extends Component
             $weightString5 = substr($term, 7, 5);
             $weightInKg5 = (float)$weightString5 / 1000;
 
-            $product = Product::where('is_active', true)->whereIn('sku', [
-                $skuCode4, ltrim($skuCode4, '0'),
-                $skuCode5, ltrim($skuCode5, '0')
-            ])->first();
+            // Priorizar coincidencia de 5 dígitos primero para evitar colisión con PLUs de 4 dígitos
+            $product = Product::where('is_active', true)
+                ->where('is_raw_material', false)
+                ->where(function($q) use ($skuCode5) {
+                    $q->where('sku', $skuCode5)->orWhere('sku', ltrim($skuCode5, '0'));
+                })->first();
 
-            $weightInKg = ($product && ($product->sku === $skuCode5 || $product->sku === ltrim($skuCode5, '0'))) 
-                ? $weightInKg5 
-                : $weightInKg4;
+            $weightInKg = $weightInKg5;
+
+            // Si no se encontró con 5 dígitos, buscar con 4 dígitos
+            if (!$product) {
+                $product = Product::where('is_active', true)
+                    ->where('is_raw_material', false)
+                    ->where(function($q) use ($skuCode4) {
+                        $q->where('sku', $skuCode4)->orWhere('sku', ltrim($skuCode4, '0'));
+                    })->first();
+                $weightInKg = $weightInKg4;
+            }
 
             if ($product) {
+                if ($weightInKg <= 0.0001) {
+                    $this->dispatch('error-movement', "Etiqueta con peso inválido (0.000 Kg).");
+                    $this->dispatch('beep-error');
+                    return true;
+                }
+
                 if ($product->has_variations) {
                     $this->selectingProduct = $product;
+                    $this->pendingScannedWeight = $weightInKg;
                     $this->showVariationModal = true;
                 } else {
                     $this->addToCartInternal($product, null, $weightInKg);
@@ -531,9 +558,11 @@ class SalesInterface extends Component
         $variation = \App\Models\ProductVariation::find($variationId);
         if (!$variation) return;
 
-        $this->addToCartInternal($this->selectingProduct, $variation);
+        $weight = $this->pendingScannedWeight ?: 1;
+        $this->addToCartInternal($this->selectingProduct, $variation, $weight);
         $this->showVariationModal = false;
         $this->selectingProduct = null;
+        $this->pendingScannedWeight = null;
     }
 
     protected function addToCartInternal($product, $variation = null, $quantity = 1)
@@ -668,8 +697,10 @@ class SalesInterface extends Component
     public function calculateTotal()
     {
         $subtotal = 0;
-        foreach ($this->cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+        foreach ($this->cart as $key => $item) {
+            $itemSubtotal = (int) round($item['price'] * $item['quantity']);
+            $this->cart[$key]['subtotal'] = $itemSubtotal;
+            $subtotal += $itemSubtotal;
         }
 
         $this->subtotalBeforeDiscount = $subtotal;
@@ -858,67 +889,7 @@ class SalesInterface extends Component
             return;
         }
         $this->cart = [];
-        $this->importingWebOrderId = null;
         $this->calculateTotal();
-    }
-
-    // ---- Web Orders Integration ----
-    public function openWebOrdersModal()
-    {
-        $this->pendingWebOrders = \App\Models\WebOrder::with('product')
-            ->whereIn('status', ['Pendiente WhatsApp', 'Atendido'])
-            ->orderByDesc('created_at')
-            ->get()
-            ->toArray();
-        $this->showWebOrdersModal = true;
-    }
-
-    public function importWebOrder($orderId)
-    {
-        $order = \App\Models\WebOrder::with('product')->find($orderId);
-        if (!$order) return;
-
-        // Clear current cart or ask? For now, clear.
-        $this->cart = [];
-        $this->importingWebOrderId = $order->id;
-
-        if ($order->items_json) {
-            foreach ($order->items_json as $item) {
-                // Try to find the actual product for accurate stock/price
-                $product = Product::find($item['id']);
-                if ($product) {
-                    $this->addToCart($product->id);
-                    // Update quantity if more than 1
-                    if ($item['quantity'] > 1) {
-                        $this->cart[$product->id]['quantity'] = $item['quantity'];
-                    }
-                } else {
-                    // Fallback for custom/deleted items (not ideal for POS but better than nothing)
-                    $this->cart[$item['id']] = [
-                        'id' => $item['id'],
-                        'name' => $item['name'],
-                        'price' => $item['price'],
-                        'quantity' => $item['quantity'],
-                        'unit_type' => 'unit'
-                    ];
-                }
-            }
-        } elseif ($order->product_id) {
-            $this->addToCart($order->product_id);
-        }
-
-        // Try to match customer by phone
-        $customer = \App\Models\Customer::where('phone', $order->customer_phone)->first();
-        if ($customer) {
-            $this->selectedCustomer = $customer->toArray();
-        } else {
-            // Pre-fill name for search or create?
-            $this->customerSearch = $order->customer_name;
-        }
-
-        $this->calculateTotal();
-        $this->showWebOrdersModal = false;
-        $this->dispatch('success-movement', 'Pedido Web #' . substr($order->id, 0, 8) . ' importado.');
     }
 
     public function saveNewCustomer()
@@ -1244,7 +1215,6 @@ class SalesInterface extends Component
                 'cheque_details'           => $this->chequeDetails,
                 'rates'                    => $this->rates,
                 'cart'                     => $this->cart,
-                'web_order_id'             => $this->importingWebOrderId,
                 'active_sale_id'           => $this->activeSaleId,
                 'restaurant_table_id'      => $this->activeTableId,
                 'waiter_id'                => $this->activeWaiterId,
@@ -1256,7 +1226,6 @@ class SalesInterface extends Component
             $this->total = 0;
             $this->selectedCustomer = null;
             $this->customerSearch = '';
-            $this->importingWebOrderId = null;
             $this->showPaymentModal = false; // Close modal
 
             // Restaurant: reset table state and go back to map
@@ -1313,7 +1282,7 @@ class SalesInterface extends Component
 
     public function voidSale($saleId)
     {
-        $sale = \App\Models\Sale::with('items.product')->findOrFail($saleId);
+        $sale = \App\Models\Sale::with(['items.product', 'payments'])->findOrFail($saleId);
 
         if ($sale->status === 'voided') {
             session()->flash('error', 'Esta venta ya fue anulada.');
@@ -1321,11 +1290,9 @@ class SalesInterface extends Component
         }
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($sale) {
-            // We need the branch_id that the sale was made on.
-            // Since sale has branch_id now (or at least user has branch_id)
-            $branchId = $sale->branch_id ?? $sale->user->branch_id;
+            $branchId = $sale->branch_id ?? $sale->user->branch_id ?? \App\Models\Branch::first()?->id;
 
-            // Restore stock
+            // 1. Restore stock and record inventory movement
             foreach ($sale->items as $item) {
                 if ($item->product && $item->product->manage_stock) {
                     $stockable = $item->product_variation_id ? $item->product->variations()->find($item->product_variation_id) : $item->product;
@@ -1338,14 +1305,54 @@ class SalesInterface extends Component
                             );
                             $branchStock->increment('stock', $item->quantity);
                         }
+
+                        \App\Models\InventoryMovement::create([
+                            'product_id' => $item->product_id,
+                            'user_id'    => auth()->id(),
+                            'type'       => 'in',
+                            'quantity'   => $item->quantity,
+                            'reason'     => 'Anulación de Venta #' . $sale->id,
+                            'notes'      => 'Reingreso de producto por venta anulada en POS.',
+                        ]);
                     }
                 }
             }
-            // Mark as voided
+
+            // 2. Reversar deuda si fue a crédito
+            if ($sale->payment_condition === 'credito' && $sale->customer_id) {
+                \App\Models\CustomerTransaction::create([
+                    'customer_id'    => $sale->customer_id,
+                    'type'           => 'credit',
+                    'amount'         => $sale->total,
+                    'reference_type' => 'void',
+                    'reference_id'   => $sale->id,
+                    'description'    => 'Reversión por Anulación de Venta #' . $sale->id,
+                ]);
+            }
+
+            // 3. Reversar efectivo en sesión de caja si hubo pago contado en efectivo
+            $cashAmount = $sale->payments->where('method', 'efectivo')->sum('amount');
+            if ($cashAmount > 0) {
+                $session = \App\Models\CashSession::where('user_id', auth()->id())
+                    ->where('status', 'open')
+                    ->first();
+
+                if ($session) {
+                    \App\Models\CashMovement::create([
+                        'cash_session_id' => $session->id,
+                        'type'            => 'out',
+                        'amount'          => $cashAmount,
+                        'description'     => 'Egreso por Venta Anulada #' . $sale->id,
+                        'reference'       => 'VOID-' . $sale->id,
+                    ]);
+                }
+            }
+
+            // 4. Mark as voided
             $sale->update(['status' => 'voided']);
         });
 
         $this->showVoidModal = false;
-        session()->flash('success', 'Venta anulada y stock restaurado.');
+        session()->flash('success', 'Venta anulada correctamente, stock restaurado y saldo regularizado.');
     }
 }

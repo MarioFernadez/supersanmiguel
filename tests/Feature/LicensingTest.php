@@ -25,7 +25,6 @@ class LicensingTest extends TestCase
         StoreSetting::updateOrCreate(['key' => 'license_max_users'], ['value' => '5']);
         StoreSetting::updateOrCreate(['key' => 'license_max_cash_registers'], ['value' => '2']);
         StoreSetting::updateOrCreate(['key' => 'license_tier_name'], ['value' => 'Plan Pro']);
-        StoreSetting::updateOrCreate(['key' => 'license_ecommerce_enabled'], ['value' => '1']);
         StoreSetting::updateOrCreate(['key' => 'license_enabled_at'], ['value' => Carbon::now()->subDays(15)->format('Y-m-d')]);
         StoreSetting::updateOrCreate(['key' => 'license_expires_at'], ['value' => Carbon::now()->addDays(15)->format('Y-m-d')]);
         StoreSetting::updateOrCreate(['key' => 'license_grace_period_used'], ['value' => '0']);
@@ -245,7 +244,6 @@ class LicensingTest extends TestCase
             ->set('maxUsers', 10)
             ->set('maxCashRegisters', 4)
             ->set('tierName', 'Plan Gold')
-            ->set('ecommerceEnabled', true)
             ->set('enabledAt', Carbon::now()->format('Y-m-d'))
             ->set('expiresAt', Carbon::now()->addMonths(2)->format('Y-m-d'))
             ->call('updateLicense')
@@ -256,6 +254,5 @@ class LicensingTest extends TestCase
         $this->assertEquals(10, LicenseService::getMaxUsers());
         $this->assertEquals(4, LicenseService::getMaxCashRegisters());
         $this->assertEquals('Plan Gold', LicenseService::getTierName());
-        $this->assertTrue(LicenseService::isEcommerceEnabled());
     }
 }

@@ -23,6 +23,7 @@ class Index extends BaseCrudComponent
     public $email;
     public $phone;
     public $address;
+    public $credit_limit = null;
     
     public $totalReceivable = 0;
     
@@ -70,6 +71,7 @@ class Index extends BaseCrudComponent
         $this->email = '';
         $this->phone = '';
         $this->address = '';
+        $this->credit_limit = null;
         $this->is_active = true;
         $this->resetValidation();
     }
@@ -84,6 +86,7 @@ class Index extends BaseCrudComponent
             ],
             'email' => 'nullable|email',
             'phone' => 'nullable|min:6',
+            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         Customer::updateOrCreate(['id' => $this->customerId], [
@@ -92,6 +95,7 @@ class Index extends BaseCrudComponent
             'email' => $this->email,
             'phone' => $this->phone,
             'address' => $this->address,
+            'credit_limit' => $this->credit_limit ? (float)$this->credit_limit : null,
             'is_active' => $this->is_active
         ]);
 
@@ -109,6 +113,7 @@ class Index extends BaseCrudComponent
         $this->email = $customer->email;
         $this->phone = $customer->phone;
         $this->address = $customer->address;
+        $this->credit_limit = $customer->credit_limit;
         $this->is_active = $customer->is_active;
 
         $this->openModal();
@@ -222,24 +227,21 @@ class Index extends BaseCrudComponent
                      'description' => $this->paymentDescription
                  ]);
 
-                 // 2. Add to Cash Drawer if Cash
-                 if ($this->paymentMethod === 'efectivo') {
-                     $session = CashSession::where('user_id', auth()->id())
-                         ->where('status', 'open')
-                         ->first();
-                     
-                     // Strict Check: Cannot accept cash if no session is open
-                     if (!$session) {
-                        throw new \Exception('Debes tener una caja abierta para recibir pagos en efectivo.');
-                     }
+                 // 2. Add to Cash Movement / Drawer
+                 $session = CashSession::where('user_id', auth()->id())
+                     ->where('status', 'open')
+                     ->first();
 
+                 if ($session) {
                      CashMovement::create([
                          'cash_session_id' => $session->id,
-                         'type' => 'in',
-                         'amount' => $this->paymentAmount,
-                         'description' => 'Cobro a Cliente: ' . $this->paymentCustomerName,
-                         'reference' => 'CUST-' . $this->paymentCustomerId
+                         'type'            => 'in',
+                         'amount'          => $this->paymentAmount,
+                         'description'     => 'Cobro a Cliente (' . strtoupper($this->paymentMethod) . '): ' . $this->paymentCustomerName,
+                         'reference'       => 'CUST-' . $this->paymentCustomerId
                      ]);
+                 } elseif ($this->paymentMethod === 'efectivo') {
+                     throw new \Exception('Debes tener una caja abierta para recibir pagos en efectivo.');
                  }
             });
 

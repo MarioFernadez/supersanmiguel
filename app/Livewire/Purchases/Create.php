@@ -33,14 +33,14 @@ class Create extends Component
         $key = $variationId ? "p{$productId}v{$variationId}" : "p{$productId}";
 
         if (isset($this->items[$key])) {
-            $this->items[$key]['quantity']++;
+            $this->items[$key]['quantity'] = (float)$this->items[$key]['quantity'] + 1;
         } else {
             $this->items[$key] = [
                 'id' => $product->id,
                 'variation_id' => $variationId,
                 'name' => $product->name . ($variation ? " [{$variation->name}]" : ""),
                 'cost_price' => $variation ? ($variation->price_cost ?: $product->price_cost) : $product->price_cost,
-                'quantity' => 1,
+                'quantity' => $product->unit_type === 'kg' ? 1.000 : 1,
             ];
         }
         $this->calculateTotal();
@@ -56,7 +56,9 @@ class Create extends Component
     public function calculateTotal()
     {
         $this->total = array_reduce($this->items, function($carry, $item) {
-            return $carry + ($item['cost_price'] * $item['quantity']);
+            $qty = (float) str_replace(',', '.', (string)($item['quantity'] ?? 0));
+            $cost = (float)($item['cost_price'] ?? 0);
+            return $carry + round($cost * $qty);
         }, 0);
     }
 
@@ -66,9 +68,13 @@ class Create extends Component
             'supplier_id' => 'required|exists:suppliers,id',
             'purchase_date' => 'required|date',
             'items' => 'required|array|min:1',
+            'items.*.quantity' => 'required|numeric|gt:0',
+            'items.*.cost_price' => 'required|numeric|min:0',
         ]);
 
-        DB::transaction(function() {
+        $branchId = auth()->user()->branch_id ?? \App\Models\Branch::first()?->id;
+
+        DB::transaction(function() use ($branchId) {
             $purchase = Purchase::create([
                 'supplier_id' => $this->supplier_id,
                 'user_id' => auth()->id(),
@@ -79,31 +85,58 @@ class Create extends Component
             ]);
 
             foreach ($this->items as $item) {
+                $qty = (float) str_replace(',', '.', (string)$item['quantity']);
+                $cost = (float) $item['cost_price'];
+                $subtotal = (int) round($cost * $qty);
+
                 PurchaseItem::create([
                     'purchase_id' => $purchase->id,
                     'product_id' => $item['id'],
                     'product_variation_id' => $item['variation_id'] ?? null,
-                    'quantity' => $item['quantity'],
-                    'cost_price' => $item['cost_price'],
-                    'subtotal' => $item['cost_price'] * $item['quantity'],
+                    'quantity' => $qty,
+                    'cost_price' => $cost,
+                    'subtotal' => $subtotal,
                 ]);
 
                 $product = Product::find($item['id']);
-                if ($product->manage_stock) {
+                if ($product && $product->manage_stock) {
                     if ($item['variation_id']) {
                         $variation = \App\Models\ProductVariation::find($item['variation_id']);
                         if ($variation) {
-                            $variation->increment('stock', $item['quantity']);
-                            $variation->update(['price_cost' => $item['cost_price']]);
+                            $variation->increment('stock', $qty);
+                            $variation->update(['price_cost' => $cost]);
+                            if ($branchId) {
+                                $vBranchStock = $variation->branchStocks()->firstOrCreate(
+                                    ['branch_id' => $branchId],
+                                    ['stock' => 0]
+                                );
+                                $vBranchStock->increment('stock', $qty);
+                            }
                         }
                     } else {
-                        $product->increment('stock', $item['quantity']);
+                        $product->increment('stock', $qty);
+                        if ($branchId) {
+                            $pBranchStock = $product->branchStocks()->firstOrCreate(
+                                ['branch_id' => $branchId],
+                                ['stock' => 0]
+                            );
+                            $pBranchStock->increment('stock', $qty);
+                        }
                     }
+
+                    \App\Models\InventoryMovement::create([
+                        'product_id' => $product->id,
+                        'user_id'    => auth()->id(),
+                        'type'       => 'in',
+                        'quantity'   => $qty,
+                        'reason'     => 'Compra a Proveedor #' . ($this->reference_number ?: $purchase->id),
+                        'notes'      => 'Ingreso de mercadería por factura de compra.',
+                    ]);
                 }
                 
-                // Si no tiene variación o si queremos actualizar el precio base también
-                if (!$item['variation_id']) {
-                    $product->update(['price_cost' => $item['cost_price']]);
+                // Actualizar precio de costo del producto base
+                if (!$item['variation_id'] && $product) {
+                    $product->update(['price_cost' => $cost]);
                 }
             }
         });

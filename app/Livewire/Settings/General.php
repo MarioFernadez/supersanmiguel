@@ -14,16 +14,6 @@ class General extends Component
     public $store_email;
     public $ticket_footer;
 
-    // Features Bar
-    public $shop_feature_1_title;
-    public $shop_feature_1_subtitle;
-    public $shop_feature_2_title;
-    public $shop_feature_2_subtitle;
-    public $shop_feature_3_title;
-    public $shop_feature_3_subtitle;
-    public $shop_feature_4_title;
-    public $shop_feature_4_subtitle;
-
     // Discount feature toggles
     public $discount_product_enabled = false;
     public $discount_manual_enabled  = false;
@@ -44,7 +34,7 @@ class General extends Component
 
         $this->business_type = $this->getSetting('business_type', 'generic');
         
-        $this->store_name = $this->getSetting('store_name', 'ZonaPOS Store');
+        $this->store_name = $this->getSetting('store_name', 'ZonaShop');
         $this->store_address = $this->getSetting('store_address', '');
         $this->store_phone = $this->getSetting('store_phone', '');
         $this->store_ruc = $this->getSetting('store_ruc', '');
@@ -53,15 +43,6 @@ class General extends Component
 
         $this->discount_product_enabled = $this->getSetting('discount_product_enabled', '0') === '1';
         $this->discount_manual_enabled = $this->getSetting('discount_manual_enabled', '0') === '1';
-
-        $this->shop_feature_1_title = $this->getSetting('shop_feature_1_title', 'Compra segura');
-        $this->shop_feature_1_subtitle = $this->getSetting('shop_feature_1_subtitle', 'Pago protegido con encriptación SSL');
-        $this->shop_feature_2_title = $this->getSetting('shop_feature_2_title', 'Envío a todo el país');
-        $this->shop_feature_2_subtitle = $this->getSetting('shop_feature_2_subtitle', 'Despachamos a todos los departamentos');
-        $this->shop_feature_3_title = $this->getSetting('shop_feature_3_title', 'Cambios fáciles');
-        $this->shop_feature_3_subtitle = $this->getSetting('shop_feature_3_subtitle', '15 días para cambiar');
-        $this->shop_feature_4_title = $this->getSetting('shop_feature_4_title', 'Atención al cliente');
-        $this->shop_feature_4_subtitle = $this->getSetting('shop_feature_4_subtitle', 'Soporte por WhatsApp');
     }
 
     public function render()
@@ -79,14 +60,6 @@ class General extends Component
             'store_ruc' => 'nullable|string|max:20',
             'store_email' => 'nullable|email|max:255',
             'ticket_footer' => 'nullable|string|max:255',
-            'shop_feature_1_title' => 'nullable|string|max:100',
-            'shop_feature_1_subtitle' => 'nullable|string|max:100',
-            'shop_feature_2_title' => 'nullable|string|max:100',
-            'shop_feature_2_subtitle' => 'nullable|string|max:100',
-            'shop_feature_3_title' => 'nullable|string|max:100',
-            'shop_feature_3_subtitle' => 'nullable|string|max:100',
-            'shop_feature_4_title' => 'nullable|string|max:100',
-            'shop_feature_4_subtitle' => 'nullable|string|max:100',
         ]);
 
         if (auth()->user()->role === 'developer' || auth()->user()->role === 'admin') {
@@ -101,15 +74,6 @@ class General extends Component
         $this->updateSetting('ticket_footer', $this->ticket_footer, 'Mensaje al pie del ticket');
         $this->updateSetting('discount_product_enabled', $this->discount_product_enabled ? '1' : '0', 'Habilitar descuentos por producto');
         $this->updateSetting('discount_manual_enabled', $this->discount_manual_enabled ? '1' : '0', 'Habilitar descuento manual en POS');
-
-        $this->updateSetting('shop_feature_1_title', $this->shop_feature_1_title, 'Beneficio 1 Título');
-        $this->updateSetting('shop_feature_1_subtitle', $this->shop_feature_1_subtitle, 'Beneficio 1 Subtítulo');
-        $this->updateSetting('shop_feature_2_title', $this->shop_feature_2_title, 'Beneficio 2 Título');
-        $this->updateSetting('shop_feature_2_subtitle', $this->shop_feature_2_subtitle, 'Beneficio 2 Subtítulo');
-        $this->updateSetting('shop_feature_3_title', $this->shop_feature_3_title, 'Beneficio 3 Título');
-        $this->updateSetting('shop_feature_3_subtitle', $this->shop_feature_3_subtitle, 'Beneficio 3 Subtítulo');
-        $this->updateSetting('shop_feature_4_title', $this->shop_feature_4_title, 'Beneficio 4 Título');
-        $this->updateSetting('shop_feature_4_subtitle', $this->shop_feature_4_subtitle, 'Beneficio 4 Subtítulo');
 
         $this->loadSettings();
 
