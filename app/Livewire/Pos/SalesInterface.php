@@ -128,11 +128,25 @@ class SalesInterface extends Component
 
     public function loadPaymentMethods()
     {
-        $this->paymentMethods = \Illuminate\Support\Facades\Cache::remember('active_payment_methods', 3600, function () {
-            return \App\Models\PaymentMethod::where('is_active', true)
-                ->orderByRaw("CASE WHEN type = 'cash' OR LOWER(name) = 'efectivo' THEN 0 ELSE 1 END, name ASC")
-                ->get();
+        $methods = \App\Models\PaymentMethod::where('is_active', true)
+            ->orderByRaw("CASE WHEN type = 'cash' OR LOWER(name) = 'efectivo' THEN 0 ELSE 1 END, name ASC")
+            ->get();
+
+        $hasCash = $methods->contains(function ($pm) {
+            return ($pm->type ?? null) === 'cash' || strtolower($pm->name ?? '') === 'efectivo';
         });
+
+        if (!$hasCash) {
+            $cash = new \App\Models\PaymentMethod([
+                'name' => 'Efectivo',
+                'type' => 'cash',
+                'is_active' => true,
+            ]);
+            $cash->id = 'efectivo';
+            $methods->prepend($cash);
+        }
+
+        $this->paymentMethods = $methods;
     }
 
     // ─── Restaurant: Table Map ─────────────────────────────────────────────────
@@ -302,11 +316,23 @@ class SalesInterface extends Component
             return Category::where('is_active', true)->get();
         });
 
-        $paymentMethods = \Illuminate\Support\Facades\Cache::remember('pos_active_payment_methods', 3600, function () {
-            return \App\Models\PaymentMethod::where('is_active', true)
-                ->orderByRaw("CASE WHEN type = 'cash' OR LOWER(name) = 'efectivo' THEN 0 ELSE 1 END, name ASC")
-                ->get();
+        $paymentMethods = \App\Models\PaymentMethod::where('is_active', true)
+            ->orderByRaw("CASE WHEN type = 'cash' OR LOWER(name) = 'efectivo' THEN 0 ELSE 1 END, name ASC")
+            ->get();
+
+        $hasCash = $paymentMethods->contains(function ($pm) {
+            return ($pm->type ?? null) === 'cash' || strtolower($pm->name ?? '') === 'efectivo';
         });
+
+        if (!$hasCash) {
+            $cash = new \App\Models\PaymentMethod([
+                'name' => 'Efectivo',
+                'type' => 'cash',
+                'is_active' => true,
+            ]);
+            $cash->id = 'efectivo';
+            $paymentMethods->prepend($cash);
+        }
         $this->paymentMethods = $paymentMethods;
 
         $movementTypeKey = $this->movementType == 'in' ? 'income' : 'expense';
@@ -1017,7 +1043,7 @@ class SalesInterface extends Component
         $hasEfectivo = collect($this->paymentMethods)->contains(function ($pm) {
             return strtolower($pm->name) === 'efectivo' || $pm->type === 'cash';
         });
-        $this->paymentMethod = $hasEfectivo ? 'efectivo' : (collect($this->paymentMethods)->first()?->name ? strtolower(collect($this->paymentMethods)->first()->name) : 'efectivo');
+        $this->paymentMethod = 'efectivo';
         $this->paymentCondition = 'contado';
         $this->receivedAmount = ''; // Start empty so user can type
         $this->change = -$this->total; // Initial change is effectively negative whole amount
