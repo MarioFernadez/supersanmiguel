@@ -11,12 +11,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Únicamente crear usuario developer y estructura base (sin productos ni datos de prueba)
         $this->call([
             AdminUserSeeder::class,
-            StoreSettingsSeeder::class,
-            DefaultCashRegisterSeeder::class,
-            PaymentMethodSeeder::class,
-            ExpenseCategorySeeder::class,
         ]);
     }
 }

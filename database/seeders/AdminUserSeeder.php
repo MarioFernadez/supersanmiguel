@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Branch;
+use App\Models\CashRegister;
+use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
@@ -14,6 +16,7 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Sucursal base para asignación obligatoria de usuario
         $branch = Branch::firstOrCreate(
             ['name' => 'Sucursal Central'],
             [
@@ -23,7 +26,26 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        // Limpiar registros previos para evitar duplicados en re-seeds
+        // 2. Caja inicial para poder operar el POS
+        CashRegister::firstOrCreate(
+            ['name' => 'Caja Principal'],
+            [
+                'branch_id' => $branch->id,
+                'active' => true,
+                'description' => 'Caja por defecto',
+            ]
+        );
+
+        // 3. Método de cobro inicial Efectivo
+        PaymentMethod::firstOrCreate(
+            ['name' => 'Efectivo'],
+            [
+                'type' => 'cash',
+                'is_active' => true,
+            ]
+        );
+
+        // 4. Crear únicamente el usuario Desarrollador
         User::withTrashed()->where('email', 'developer@gmail.com')->forceDelete();
         User::withTrashed()->where('role', 'developer')->forceDelete();
 
