@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Branch;
 use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
@@ -13,31 +14,28 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Limpiar registros previos para evitar duplicados en re-seeds
-        User::where('email', 'admin@zonapos.com')->delete();
-        
-        User::create([
-            'name' => 'Administrador',
-            'email' => 'admin@zonapos.com',
-            'password' => Hash::make('admin123'),
-            'role' => 'admin',
-        ]);
+        $branch = Branch::firstOrCreate(
+            ['name' => 'Sucursal Central'],
+            [
+                'address' => 'Casa Central',
+                'phone' => '0981 000 000',
+                'is_active' => true,
+            ]
+        );
 
-        // Obtener el email del developer desde la configuración (.env)
-        $devEmail = config('services.developer.email') ?: 'soteweb@gmail.com';
-        
-        User::where('email', $devEmail)->delete();
-        User::where('role', 'developer')->delete(); // Asegura limpiar cualquier otro rol developer
+        // Limpiar registros previos para evitar duplicados en re-seeds
+        User::withTrashed()->where('email', 'developer@gmail.com')->forceDelete();
+        User::withTrashed()->where('role', 'developer')->forceDelete();
 
         User::create([
             'name' => 'Desarrollador Master',
-            'email' => $devEmail,
-            'password' => Hash::make('developer123'),
+            'email' => 'developer@gmail.com',
+            'password' => Hash::make('Developer2026'),
             'role' => 'developer',
+            'branch_id' => $branch->id,
         ]);
 
-        $this->command->info('Usuarios iniciales creados exitosamente!');
-        $this->command->info('Admin - Email: admin@zonapos.com | Password: admin123');
-        $this->command->info('Developer - Email: ' . $devEmail . ' | Password: developer123');
+        $this->command?->info('Usuario Desarrollador creado exitosamente!');
+        $this->command?->info('Developer - Email: developer@gmail.com | Password: Developer2026');
     }
 }

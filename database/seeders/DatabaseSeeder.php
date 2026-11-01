@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -17,7 +16,7 @@ class DatabaseSeeder extends Seeder
             StoreSettingsSeeder::class,
             DefaultCashRegisterSeeder::class,
             PaymentMethodSeeder::class,
-            MinimarketProductsSeeder::class,
+            ExpenseCategorySeeder::class,
         ]);
     }
 }
