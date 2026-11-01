@@ -36,14 +36,11 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        // 3. Método de cobro inicial Efectivo
-        PaymentMethod::firstOrCreate(
-            ['name' => 'Efectivo'],
-            [
-                'type' => 'cash',
-                'is_active' => true,
-            ]
-        );
+        // 3. Métodos de cobro principales
+        PaymentMethod::firstOrCreate(['name' => 'Efectivo'], ['type' => 'cash', 'is_active' => true]);
+        PaymentMethod::firstOrCreate(['name' => 'Tarjeta'], ['type' => 'card', 'is_active' => true]);
+        PaymentMethod::firstOrCreate(['name' => 'Transferencia'], ['type' => 'transfer', 'is_active' => true]);
+        PaymentMethod::firstOrCreate(['name' => 'QR'], ['type' => 'qr', 'is_active' => true]);
 
         // 4. Crear únicamente el usuario Desarrollador
         User::withTrashed()->where('email', 'developer@gmail.com')->forceDelete();
