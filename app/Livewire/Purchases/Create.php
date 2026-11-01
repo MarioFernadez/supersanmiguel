@@ -24,6 +24,33 @@ class Create extends Component
         $this->purchase_date = date('Y-m-d');
     }
 
+    public function updatedSearch($value)
+    {
+        $term = trim((string)$value);
+        if (strlen($term) < 2) return;
+
+        $cleanNoZeros = ltrim($term, '0');
+        $skus = array_unique(array_filter([$term, $cleanNoZeros]));
+
+        $productExact = Product::where('is_active', true)
+            ->where('has_variations', false)
+            ->whereIn('sku', $skus)
+            ->first();
+
+        if ($productExact) {
+            $this->addItem($productExact->id);
+            return;
+        }
+
+        $variationExact = \App\Models\ProductVariation::where('is_active', true)
+            ->whereIn('sku', $skus)
+            ->first();
+
+        if ($variationExact) {
+            $this->addItem($variationExact->product_id, $variationExact->id);
+        }
+    }
+
     public function addItem($productId, $variationId = null)
     {
         $product = Product::find($productId);

@@ -370,18 +370,27 @@ class SalesInterface extends Component
         $this->dispatch('product-scanned');
     }
 
+    protected bool $barcodeProcessedInRequest = false;
+
     public function updatedSearch($value)
     {
+        if ($this->barcodeProcessedInRequest) return;
+
         $term = trim((string)$value);
         if (empty($term)) return;
 
         // Auto-detección: si el texto leído en el buscador coincide con un código de barra / SKU,
         // se agrega de forma 100% automática al carrito y se limpia el buscador de inmediato:
-        $this->tryAutoAddBarcode($term);
+        if ($this->tryAutoAddBarcode($term, false)) {
+            $this->barcodeProcessedInRequest = true;
+            $this->search = '';
+        }
     }
 
-    public function handleSearchSubmit($scannedTerm = null)
+    public function handleSearchSubmit($scannedTerm = null, $isExplicitSubmit = true)
     {
+        if ($this->barcodeProcessedInRequest) return;
+
         $term = trim($scannedTerm !== null ? (string)$scannedTerm : (string)$this->search);
 
         if (empty($term)) {
@@ -390,20 +399,21 @@ class SalesInterface extends Component
             return;
         }
 
-        $added = $this->tryAutoAddBarcode($term, true);
+        $added = $this->tryAutoAddBarcode($term, (bool)$isExplicitSubmit);
         if ($added) {
+            $this->barcodeProcessedInRequest = true;
             $this->search = '';
         } else {
-            // Si el código no existe y tiene formato de código de barras numérico (>=5 dígitos), avisar error al cajero
-            if (is_numeric($term) && strlen($term) >= 5) {
+            // Si el código no existe y tiene formato de código de barras numérico (>=8 dígitos, o explícito >=5 dígitos), avisar error al cajero
+            if (is_numeric($term) && (strlen($term) >= 8 || ($isExplicitSubmit && strlen($term) >= 5))) {
                 $this->search = '';
                 $this->dispatch('error-movement', "Producto con código '{$term}' no encontrado.");
                 $this->dispatch('beep-error');
+                $this->dispatch('product-scanned');
             } else {
-                // Si el usuario escribió un texto para buscar por nombre (ej: 'coca', 'arroz'), filtrar la grilla
+                // Si el usuario escribió un texto para buscar por nombre (ej: 'coca', 'costilla'), filtrar la grilla
                 $this->search = $term;
             }
-            $this->dispatch('product-scanned');
         }
     }
 

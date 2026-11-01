@@ -128,27 +128,41 @@
             <div class="flex gap-2">
                 <div class="relative flex-1" x-data="{
                     scanTimer: null,
-                    submitCode(val) {
+                    lastSubmittedVal: '',
+                    lastSubmittedAt: 0,
+                    submitCode(val, isExplicit = false) {
                         val = (val || '').trim();
-                        if (!val || val.length < 2) return;
                         clearTimeout(this.scanTimer);
-                        const input = document.getElementById('product-search-input');
-                        if (input) input.value = '';
-                        $wire.handleSearchSubmit(val);
+                        if (!val || val.length < 2) return;
+                        const now = Date.now();
+                        if (this.lastSubmittedVal === val && (now - this.lastSubmittedAt) < 350) {
+                            return;
+                        }
+                        this.lastSubmittedVal = val;
+                        this.lastSubmittedAt = now;
+                        $wire.handleSearchSubmit(val, isExplicit);
                     }
                 }">
                     <input id="product-search-input" 
-                        wire:model="search" 
                         type="text" 
-                        x-on:keydown.enter.prevent="submitCode($el.value)"
-                        x-on:keydown.tab.prevent="submitCode($el.value)"
+                        value="{{ $search }}"
+                        x-on:keydown.enter.prevent="submitCode($el.value, true)"
+                        x-on:keydown.tab.prevent="submitCode($el.value, true)"
                         x-on:input="
                             clearTimeout(scanTimer);
                             let val = $el.value.trim();
-                            if (val.length >= 3) {
+                            if (!val) {
+                                $wire.clearSearch();
+                                return;
+                            }
+                            if (/^\d{8,14}$/.test(val)) {
                                 scanTimer = setTimeout(() => {
-                                    submitCode(val);
-                                }, 100);
+                                    submitCode($el.value, false);
+                                }, 40);
+                            } else if (val.length >= 2) {
+                                scanTimer = setTimeout(() => {
+                                    submitCode($el.value, false);
+                                }, 90);
                             }
                         "
                         class="w-full pl-10 pr-16 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm text-sm" 

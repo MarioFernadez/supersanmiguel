@@ -37,13 +37,13 @@
                         <div class="space-y-5">
                             <div>
                                 <label for="name" class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest dark:text-gray-300">Nombre del Producto</label>
-                                <input type="text" id="name" wire:model="name" class="w-full border-gray-200 rounded-xl py-3 px-4 text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300" placeholder="Ej: Zapatillas Nike Air Max">
+                                <input type="text" id="name" wire:model="name" class="w-full border-gray-200 rounded-xl py-3 px-4 text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300" placeholder="Ej: Costilla de Primera, Vacío Vacuno, Chorizo Casero">
                                 @error('name') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                             </div>
 
                             <div>
                                 <label for="description" class="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-widest dark:text-gray-300">Descripción (Opcional)</label>
-                                <textarea id="description" wire:model="description" rows="4" class="w-full border-gray-200 rounded-xl py-3 px-4 text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300" placeholder="Escribe los detalles, beneficios y especificaciones técnicas..."></textarea>
+                                <textarea id="description" wire:model="description" rows="4" class="w-full border-gray-200 rounded-xl py-3 px-4 text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300" placeholder="Detalles del corte, presentación o categoría del producto..."></textarea>
                                 @error('description') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                             </div>
                         </div>
@@ -469,8 +469,8 @@
                             @endif
 
                             <div class="pt-5 border-t border-gray-100 border-dashed dark:border-gray-700">
-                                <label class="block text-[10px] font-black text-gray-500 mb-2 uppercase tracking-widest dark:text-gray-400">SKU / Código Interno</label>
-                                <input type="text" wire:model="sku" class="w-full font-mono border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300" placeholder="Vacío = Auto-generar">
+                                <label class="block text-[10px] font-black text-gray-500 mb-2 uppercase tracking-widest dark:text-gray-400">SKU / Código de Barras</label>
+                                <input type="text" wire:model="sku" @keydown.enter.prevent class="w-full font-mono border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300" placeholder="Escanear código o vacío = Auto-generar">
                                 @error('sku') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>@enderror
                             </div>
                         </div>
